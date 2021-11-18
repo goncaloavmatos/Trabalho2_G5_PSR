@@ -136,7 +136,7 @@ def main():
             # ............. printing limits .....................
 
         if pressed_key == ord('w'):
-            file_name = 'limits.json'
+            file_name = '/home/goncalo/catkin_ws/src/Trabalho2_G5_PSR/limits.json'
             with open(file_name, 'w') as file_handle:
                 print('Saving dictionary with the current limits...')
                 json.dump(ranges,  file_handle)

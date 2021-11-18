@@ -3,28 +3,40 @@ import argparse
 import json
 import cv2
 import numpy as np
-
+from pprint import pprint
+from colorama import Fore, Style
 
 def main():
-    # ............. Initialization ...........................
+    # ========================================================
+    # .................INITIALIZATION ........................
+    # ========================================================
 
-    # Specify file directory
+    # ..............Specify file directory....................
 
     parser = argparse.ArgumentParser()
     parser.add_argument('-j', '--json', type=str, required=True, help='Full path to json file.')
     args = vars(parser.parse_args())
+    color_segment = args['json']
 
-    # Get limits.json
-    with open("limits.json", "r") as f:
+    # .............. Get limits.json .........................
+
+    with open(color_segment, "r") as f:
         ranges = json.load(f)
 
-    white_scr = np.zeros([600, 600, 1], dtype=np.uint8)
-    white_scr.fill(255)
+    print('\nYour imported limits are:\n')
 
-    cv2.imshow('White Screen', white_scr)
-    print("image shape: ", white_scr.shape)
+    print(Fore.RED + Style.BRIGHT + 'R: ' + Style.RESET_ALL)
+    print(ranges['limits']['r'])
+
+    print(Fore.GREEN + Style.BRIGHT + 'G: ' + Style.RESET_ALL)
+    print(ranges['limits']['g'])
+
+    print(Fore.BLUE + Style.BRIGHT + 'B: ' + Style.RESET_ALL)
+    print(ranges['limits']['b'])
+    print('\n')
 
     cam = cv2.VideoCapture(0)
+
 
     print('Press q to exit')
 
@@ -32,11 +44,14 @@ def main():
         ret, frame = cam.read()  # get an image from the camera
 
         cv2.namedWindow('Capture', cv2.WINDOW_AUTOSIZE)
-        resized = cv2.resize(frame, (600, 600), interpolation=cv2.INTER_AREA)
-        print("capture size: ", resized.shape)
-        cv2.imshow('Capture', resized)
 
-        if cv2.waitKey(1) & 0xFF == ord('q'):
+        whiteboard = np.zeros(frame.shape, dtype=np.uint8) # Set whiteboard size as the size of the captured image
+        whiteboard.fill(255)  # make every pixel white
+
+        cv2.imshow('Capture', frame)
+        cv2.imshow('Whiteboard', whiteboard)
+
+        if cv2.waitKey(10) & 0xFF == ord('q'):
             break
     cam.release()
     cv2.destroyAllWindows()
