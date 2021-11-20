@@ -61,6 +61,8 @@ def get_centroid_largest(mask_largest):
 def draw_on_whiteboard(img, marker_coord, painting_true, brush_size):
     if painting_true:
         img = cv2.circle(img, marker_coord, brush_size, colour, -1)
+    else:
+        img = cv2.circle(img, marker_coord, 1, (255, 255, 255), -1)
 
     return img
 
@@ -86,6 +88,12 @@ def main():
     parser.add_argument('-j', '--json', type=str, required=True, help='Full path to json file.')
     args = vars(parser.parse_args())
     color_segment = args['json']
+
+    # ................ Presentation .........................
+
+    print(Fore.LIGHTBLUE_EX + Style.BRIGHT +'\n AUGMENTED REALITY PAINT' + Style.RESET_ALL)
+    print('\n\n\n Press "p" to start painting. Press it again to stop.\n\n\n')
+
 
     # .............. Get limits.json .........................
 
@@ -173,6 +181,11 @@ def main():
         if pressed & 0xFF == ord('b'):
             colour = (255, 0, 0)
             print('\nCurrent colour: ' + Fore.BLUE + 'BLUE' + Style.RESET_ALL)
+
+        if pressed & 0xFF == ord('e'):
+            colour = (255, 255, 255)
+            print('\nYou selected the ' + Fore.LIGHTMAGENTA_EX + 'ERASER' + Style.RESET_ALL)
+
         # ..................................................................
 
         # To clear the board
@@ -193,7 +206,7 @@ def main():
         if pressed & 0xFF == ord('+'):
             if brush_size == 45:  # To prevent brush size from getting above the maximum of 45
                 brush_size = 45
-                print(Fore.YELLOW + Style.BRIGHT + Back.RED + '\n Brush size is already at the MAXIMUM' + Style.RESET_ALL)
+                print(Fore.YELLOW + Style.BRIGHT + Back.RED + '\n'+' Brush size is already at the MAXIMUM' + Style.RESET_ALL)
 
             else:
                 brush_size += 2
@@ -201,10 +214,9 @@ def main():
         if pressed & 0xFF == ord('-'):
             if brush_size == 1:  # To prevent brush size from getting below the minimum of 1
                 brush_size = 1
-                print(Fore.YELLOW + Style.BRIGHT + Back.RED + '\n Brush size is already at the minimum' + Style.RESET_ALL)
+                print(Fore.YELLOW + Style.BRIGHT + Back.RED + '\n'+' Brush size is already at the minimum' + Style.RESET_ALL)
             else:
                 brush_size -= 2
-
 
         # ................Calling the function tha paints the whiteboard ................
         whiteboard = draw_on_whiteboard(whiteboard, centroid, painting, brush_size)
