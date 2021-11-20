@@ -77,12 +77,12 @@ def main():
 
     if args['hsv']:
 
-        cv2.createTrackbar('Min H', window_segment, 0, 255, onTrackbarMinBH)
-        cv2.createTrackbar('Max H', window_segment, 255, 255, onTrackbarMaxBH)
-        cv2.createTrackbar('Min S', window_segment, 0, 255, onTrackbarMinGS)
-        cv2.createTrackbar('Max S', window_segment, 255, 255, onTrackbarMaxGS)
-        cv2.createTrackbar('Min V', window_segment, 0, 255, onTrackbarMinRV)
-        cv2.createTrackbar('Max V', window_segment, 255, 255, onTrackbarMaxRV)
+        cv2.createTrackbar('Min H', window_segment, 0, 100, onTrackbarMinBH)
+        cv2.createTrackbar('Max H', window_segment, 100, 100, onTrackbarMaxBH)
+        cv2.createTrackbar('Min S', window_segment, 0, 100, onTrackbarMinGS)
+        cv2.createTrackbar('Max S', window_segment, 100, 100, onTrackbarMaxGS)
+        cv2.createTrackbar('Min V', window_segment, 0, 100, onTrackbarMinRV)
+        cv2.createTrackbar('Max V', window_segment, 100, 100, onTrackbarMaxRV)
 
     else:
 
@@ -97,6 +97,7 @@ def main():
 
     while True:
         _, image = cap.read()
+        image = cv2.flip(image, 1)  # To make the image work like a mirror
         cv2.imshow(window_original, image)
 
         if args['hsv']:  # To change from BGR to HSV, if requested
