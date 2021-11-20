@@ -66,7 +66,7 @@ def draw_on_whiteboard(img, marker_coord, painting_true, brush_size):
 
     return img
 
-colour = (255, 255, 255)
+colour = (255, 0, 0)
 
 
 # =================================================================================================
@@ -91,8 +91,8 @@ def main():
 
     # ................ Presentation .........................
 
-    print(Fore.LIGHTBLUE_EX + Style.BRIGHT +'\n AUGMENTED REALITY PAINT' + Style.RESET_ALL)
-    print('\n\n\n Press "p" to start painting. Press it again to stop.\n\n\n')
+    print(Fore.LIGHTBLUE_EX + Style.BRIGHT + '\n            AUGMENTED REALITY PAINT' + Style.RESET_ALL)
+    print('___________________________________________________')
 
 
     # .............. Get limits.json .........................
@@ -101,7 +101,7 @@ def main():
         ranges = json.load(f)  # saves the dictionary as ranges
 
     #  Print the imported dictionary
-    print('\nYour imported limits are:\n')
+    print('\nUse an object within the color limits you segmented as a marker.\nYour imported limits are:\n')
 
     print(Fore.RED + Style.BRIGHT + 'R: ' + Style.RESET_ALL)
     print(ranges['limits']['r'])
@@ -112,6 +112,20 @@ def main():
     print(Fore.BLUE + Style.BRIGHT + 'B: ' + Style.RESET_ALL)
     print(ranges['limits']['b'])
     print('\n')
+
+    # ................ Instruction ............................
+    print(Style.BRIGHT + '\nINSTRUCTIONS:\n' + Style.RESET_ALL)
+    print('"p" -> Start/stop painting\n\n'
+          'Colours\n'
+          '"r" -> Change color to red\n'
+          '"g" -> Change color to green\n'
+          '"b" -> Change color to blue\n'
+          '"spacebar" -> Eraser\n\n'
+          'Edit marker\n'
+          '"+" -> make bigger\n'
+          '"-" -> make smaller')
+
+    print('\n\n\n Press "p" to start painting. Press it again to stop.\n\n')
 
     # Extracting minimums and maximums from ranges and saving as separate arrays
     mins = np.array([ranges['limits']['b']['min'], ranges['limits']['g']['min'], ranges['limits']['r']['min']])
@@ -167,6 +181,7 @@ def main():
 
         # To terminate
         if pressed & 0xFF == ord('q'):
+            print('\n\nYou pressed "q" to quit, the program terminated.\n\n')
             break
 
         # ...................... Change colours .........................
@@ -182,7 +197,7 @@ def main():
             colour = (255, 0, 0)
             print('\nCurrent colour: ' + Fore.BLUE + 'BLUE' + Style.RESET_ALL)
 
-        if pressed & 0xFF == ord('e'):
+        if pressed & 0xFF == ord(' '):
             colour = (255, 255, 255)
             print('\nYou selected the ' + Fore.LIGHTMAGENTA_EX + 'ERASER' + Style.RESET_ALL)
 
