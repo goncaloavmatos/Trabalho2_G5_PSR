@@ -43,9 +43,12 @@ def get_centroid_largest(mask_largest):
     # we don't want that.
     # extracting size from cv2.connectedComponentsWithStats
 
-    centroid = centroids[1]
+    if len(centroids) == 1:
+        centroid = (0, 0)
+    else:
+        centroid = centroids[1]
 
-    return centroid[0],centroid[1]
+    return centroid[0], centroid[1]
 
 
 def main():
