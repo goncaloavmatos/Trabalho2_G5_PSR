@@ -76,16 +76,18 @@ def draw_on_whiteboard(img, marker_coord, val, painting_true, brush_size):
     global previous_point # The last point before the marker
     dist = calculate_distance(previous_point, marker_coord)
 
-
     # If we are painting and the distance between the 2 points isn't too big
     # And val is True (for debugging)
     if painting_true and dist < 25 and val:
 
-        img = cv2.circle(img, marker_coord, int(brush_size/2), colour, -1) # paints circle
+        # paints circle where the centroid is detected
+        # divide brush size by to permit a radius of 1
+        img = cv2.circle(img, marker_coord, int(brush_size/2), colour, -1)
 
         img = cv2.line(img, previous_point, marker_coord, colour, brush_size)  # unites close circles with line
 
         previous_point = marker_coord  # saves the current point to be the previous point in the next iteration
+
     else:
         # doesn't paint but saves the current point to be the previous point in the next iteration
         previous_point = marker_coord
@@ -136,7 +138,7 @@ def main():
     print(ranges['limits']['b'])
     print('\n')
 
-    # ................ Instruction ............................
+    # ................ Instructions ............................
     print(Style.BRIGHT + '\nINSTRUCTIONS:\n' + Style.RESET_ALL)
     print('"p" -> Start/stop painting\n'
           '"q" -> Quit\n\n'
@@ -205,10 +207,6 @@ def main():
         # Getting the largest object's centroid coordinates
         centroid, val = get_centroid_largest(mask_largest)
 
-        if centroid != (0, 0):
-            # Showing marker in the original image
-            frame = cv2.circle(frame, centroid, 5, (255, 0, 0), -1)
-
         pressed = cv2.waitKey(50)
 
         # To terminate
@@ -233,6 +231,9 @@ def main():
             colour = (255, 255, 255)
             print('\nYou selected the ' + Fore.LIGHTMAGENTA_EX + 'ERASER' + Style.RESET_ALL)
 
+        if centroid != (0, 0):
+            # Showing marker in the original image
+            frame = cv2.circle(frame, centroid, 5, colour, -1)
         # ..................................................................
 
         # To clear the board
@@ -268,7 +269,7 @@ def main():
             else:
                 brush_size -= 2
 
-        # ................Calling the function tha paints the whiteboard ................
+        # ................Calling the function that paints the whiteboard ................
         whiteboard = draw_on_whiteboard(whiteboard, centroid, val, painting, brush_size)
 
         # Showing images
