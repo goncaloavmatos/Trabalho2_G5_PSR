@@ -10,7 +10,7 @@ import math
 # ........... Function: DISTANCE BETWEEN POINTS ..........
 # ========================================================
 
-
+# To help with Funcionalidade Avançada 1
 def calculate_distance(point1, point2):
     x1, y1 = point1[0], point1[1]
     x2, y2 = point2[0], point2[1]
@@ -44,7 +44,7 @@ def remove_small_objects(mask):
     return mask_largest
 
 # ========================================================
-# .... Function: GET LARGEST OBJECT CENTROID COORDINATES...
+# ...Function: GET LARGEST OBJECT'S CENTROID COORDINATES...
 # ========================================================
 
 
@@ -64,31 +64,33 @@ def get_centroid_largest(mask_largest):
         reality = True
     centroid = (int(round(centroid[0])), int(round(centroid[1])))
 
-    return centroid, reality
+    return centroid, reality   # reality is just for debugging
 
 # ========================================================
 # .................. Function: PAINTING...................
 # ========================================================
+# Receives inputs and draws
 
 
 def draw_on_whiteboard(img, marker_coord, val, painting_true, brush_size):
-    global previous_point
+    global previous_point # The last point before the marker
     dist = calculate_distance(previous_point, marker_coord)
 
+
+    # If we are painting and the distance between the 2 points isn't too big
+    # And val is True (for debugging)
     if painting_true and dist < 25 and val:
 
-        img = cv2.circle(img, marker_coord, brush_size, colour, -1)
-        img = cv2.line(img, previous_point, marker_coord, colour, brush_size+5)
-        previous_point = marker_coord
+        img = cv2.circle(img, marker_coord, int(brush_size/2), colour, -1) # paints circle
 
+        img = cv2.line(img, previous_point, marker_coord, colour, brush_size)  # unites close circles with line
+
+        previous_point = marker_coord  # saves the current point to be the previous point in the next iteration
     else:
-
+        # doesn't paint but saves the current point to be the previous point in the next iteration
         previous_point = marker_coord
-
 
     return img
-
-colour = (255, 0, 0)
 
 
 # =================================================================================================
@@ -116,7 +118,6 @@ def main():
     print(Fore.LIGHTBLUE_EX + Style.BRIGHT + '\n            AUGMENTED REALITY PAINT' + Style.RESET_ALL)
     print('___________________________________________________')
 
-
     # .............. Get limits.json .........................
 
     with open(color_segment, "r") as f:  # opens and reads the json file
@@ -137,13 +138,14 @@ def main():
 
     # ................ Instruction ............................
     print(Style.BRIGHT + '\nINSTRUCTIONS:\n' + Style.RESET_ALL)
-    print('"p" -> Start/stop painting\n\n'
+    print('"p" -> Start/stop painting\n'
+          '"q" -> Quit\n\n'
           'Colours\n'
           '"r" -> Change color to red\n'
           '"g" -> Change color to green\n'
-          '"b" -> Change color to blue\n'
+          '"b" -> Change color to blue (Default)\n'
           '"spacebar" -> Eraser\n\n'
-          'Edit marker\n'
+          'Edit brush size\n'
           '"+" -> make bigger\n'
           '"-" -> make smaller')
 
@@ -164,13 +166,13 @@ def main():
     whiteboard = np.zeros(frame.shape, dtype=np.uint8)  # Set whiteboard size as the size of the captured image
     whiteboard.fill(255)  # make every pixel white
 
-    print('Press q to exit')
 
+    # ..................... Starting values ...................................
     # Specifying that at the start the user is not painting
     painting = False
     brush_size = 5
     previous_point = (0, 0)
-
+    colour = (255, 0, 0) # To start with blue by default
 
     while True:
 
@@ -180,8 +182,13 @@ def main():
         frame = cv2.flip(frame, 1)  # To make the image work like a mirror
 
         cv2.namedWindow('Capture', cv2.WINDOW_AUTOSIZE)
+        cv2.moveWindow('Capture', 40, 30)
         cv2.namedWindow('Whiteboard', cv2.WINDOW_AUTOSIZE)
+        cv2.moveWindow('Whiteboard', 720, 30)
         cv2.namedWindow('Mask', cv2.WINDOW_AUTOSIZE)
+        cv2.moveWindow('Mask', 40, 600)
+        cv2.namedWindow('Largest', cv2.WINDOW_AUTOSIZE)
+        cv2.moveWindow('Largest', 720, 600)
 
         # ............Applying segmentation limits to create a mask ......................
 
