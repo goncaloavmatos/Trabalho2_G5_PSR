@@ -3,7 +3,7 @@ import argparse
 import json
 import cv2
 import numpy as np
-from colorama import Fore, Style
+from colorama import Fore, Style, Back
 
 # ========================================================
 # ...... Function: ISOLATE LARGEST OBJECT IN A MASK ......
@@ -35,6 +35,7 @@ def remove_small_objects(mask):
 # .... Function: GET LARGEST OBJECT CENTROID COORDINATES...
 # ========================================================
 
+
 def get_centroid_largest(mask_largest):
     # find all your connected components (white blobs in your image)
     nb_components, output, stats, centroids = cv2.connectedComponentsWithStats(mask_largest, connectivity=8)
@@ -43,18 +44,41 @@ def get_centroid_largest(mask_largest):
     # we don't want that.
     # extracting size from cv2.connectedComponentsWithStats
 
-    if len(centroids) == 1:
+    if len(centroids) == 1: # If no object is detected, put marker on the origin
         centroid = (0, 0)
     else:
-        centroid = centroids[1]
+        centroid = centroids[1]  # Save the largest object's centroid as a tuple
 
-    return centroid[0], centroid[1]
+    centroid = (int(round(centroid[0])), int(round(centroid[1])))
+
+    return centroid
+
+# ========================================================
+# .................. Function: PAINTING...................
+# ========================================================
+
+
+def draw_on_whiteboard(img, marker_coord, painting_true, brush_size):
+    if painting_true:
+        img = cv2.circle(img, marker_coord, brush_size, colour, -1)
+
+    return img
+
+colour = (255, 255, 255)
+
+
+# =================================================================================================
+# ............................................. MAIN FUNCTION .....................................
+# =================================================================================================
 
 
 def main():
+
     # ========================================================
     # .................INITIALIZATION ........................
     # ========================================================
+
+    global colour
 
     # ..............Specify file directory....................
 
@@ -89,27 +113,29 @@ def main():
     # .................PROCESSING IMAGE ......................
     # ========================================================
     cam = cv2.VideoCapture(0)
+    ret, frame = cam.read()  # get an image from the camera
+
+    # .............. Creating whiteboard with same size as shape ................
+
+    whiteboard = np.zeros(frame.shape, dtype=np.uint8)  # Set whiteboard size as the size of the captured image
+    whiteboard.fill(255)  # make every pixel white
 
     print('Press q to exit')
+
+    # Specifying that at the start the user is not painting
+    painting = False
+    brush_size = 5
 
     while True:
 
         # ........... initializing images and windows ..............................
 
         ret, frame = cam.read()  # get an image from the camera
-        frame = cv2.flip(frame, 1) # To make the image work like a mirror
+        frame = cv2.flip(frame, 1)  # To make the image work like a mirror
 
         cv2.namedWindow('Capture', cv2.WINDOW_AUTOSIZE)
         cv2.namedWindow('Whiteboard', cv2.WINDOW_AUTOSIZE)
         cv2.namedWindow('Mask', cv2.WINDOW_AUTOSIZE)
-
-        # .............. Creating whiteboard with same size as shape ................
-
-        whiteboard = np.zeros(frame.shape, dtype=np.uint8) # Set whiteboard size as the size of the captured image
-        whiteboard.fill(255)  # make every pixel white
-
-        #cv2.imshow('Capture', frame)
-        #cv2.imshow('Whiteboard', whiteboard)
 
         # ............Applying segmentation limits to create a mask ......................
 
@@ -124,20 +150,69 @@ def main():
         # .......... Setting up the point that will draw in the whiteboard ...............
 
         # Getting the largest object's centroid coordinates
-        x_c, y_c = get_centroid_largest(mask_largest)
-        centroid = (int(round(x_c)), int(round(y_c)))
+        centroid = get_centroid_largest(mask_largest)
 
         # Showing marker in the original image
         frame = cv2.circle(frame, centroid, 5, (255, 0, 0), -1)
+
+        pressed = cv2.waitKey(50)
+
+        # To terminate
+        if pressed & 0xFF == ord('q'):
+            break
+
+        # ...................... Change colours .........................
+        if pressed & 0xFF == ord('r'):
+            colour = (0, 0, 255)
+            print('\nCurrent colour: ' + Fore.RED + 'RED' + Style.RESET_ALL)
+
+        if pressed & 0xFF == ord('g'):
+            colour = (0, 255, 0)
+            print('\nCurrent colour: ' + Fore.GREEN + 'GREEN' + Style.RESET_ALL)
+
+        if pressed & 0xFF == ord('b'):
+            colour = (255, 0, 0)
+            print('\nCurrent colour: ' + Fore.BLUE + 'BLUE' + Style.RESET_ALL)
+        # ..................................................................
+
+        # To clear the board
+        if pressed & 0xFF == ord('c'):
+            whiteboard = np.zeros(frame.shape, dtype=np.uint8)
+            whiteboard.fill(255)  # or img[:] = 255
+            print('\nCLEARED THE WHITEBOARD')
+
+        # To start and stop painting
+        if pressed & 0xFF == ord('p'):
+            if painting is False:
+                painting = True
+            else:
+                painting = False
+
+        # ....................... Changing brush size ......................
+
+        if pressed & 0xFF == ord('+'):
+            if brush_size == 45:  # To prevent brush size from getting above the maximum of 45
+                brush_size = 45
+                print(Fore.YELLOW + Style.BRIGHT + Back.RED + '\n Brush size is already at the MAXIMUM' + Style.RESET_ALL)
+
+            else:
+                brush_size += 2
+
+        if pressed & 0xFF == ord('-'):
+            if brush_size == 1:  # To prevent brush size from getting below the minimum of 1
+                brush_size = 1
+                print(Fore.YELLOW + Style.BRIGHT + Back.RED + '\n Brush size is already at the minimum' + Style.RESET_ALL)
+            else:
+                brush_size -= 2
+
+
+        # ................Calling the function tha paints the whiteboard ................
+        whiteboard = draw_on_whiteboard(whiteboard, centroid, painting, brush_size)
 
         # Showing images
         cv2.imshow('Capture', frame)
         cv2.imshow('Whiteboard', whiteboard)
 
-
-        # To terminate
-        if cv2.waitKey(10) & 0xFF == ord('q'):
-            break
     cam.release()
     cv2.destroyAllWindows()
 
