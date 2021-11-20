@@ -4,6 +4,18 @@ import json
 import cv2
 import numpy as np
 from colorama import Fore, Style, Back
+import math
+
+# ========================================================
+# ........... Function: DISTANCE BETWEEN POINTS ..........
+# ========================================================
+
+
+def calculate_distance(point1, point2):
+    x1, y1 = point1[0], point1[1]
+    x2, y2 = point2[0], point2[1]
+    dist = math.sqrt((x2 - x1)**2 + (y2 - y1)**2)
+    return dist
 
 # ========================================================
 # ...... Function: ISOLATE LARGEST OBJECT IN A MASK ......
@@ -44,7 +56,7 @@ def get_centroid_largest(mask_largest):
     # we don't want that.
     # extracting size from cv2.connectedComponentsWithStats
 
-    if len(centroids) == 1: # If no object is detected, put marker on the origin
+    if len(centroids) == 1:  # If no object is detected, put marker on the origin
         centroid = (0, 0)
     else:
         centroid = centroids[1]  # Save the largest object's centroid as a tuple
@@ -59,10 +71,19 @@ def get_centroid_largest(mask_largest):
 
 
 def draw_on_whiteboard(img, marker_coord, painting_true, brush_size):
-    if painting_true:
+    global previous_point
+    dist = calculate_distance(previous_point, marker_coord)
+
+    if painting_true and dist < 50:
+
         img = cv2.circle(img, marker_coord, brush_size, colour, -1)
+        img = cv2.line(img, previous_point, marker_coord, colour, brush_size+5)
+        previous_point = marker_coord
+
     else:
-        img = cv2.circle(img, marker_coord, 1, (255, 255, 255), -1)
+
+        previous_point = marker_coord
+
 
     return img
 
@@ -81,7 +102,7 @@ def main():
     # ========================================================
 
     global colour
-
+    global previous_point
     # ..............Specify file directory....................
 
     parser = argparse.ArgumentParser()
@@ -147,6 +168,8 @@ def main():
     # Specifying that at the start the user is not painting
     painting = False
     brush_size = 5
+    previous_point = (0, 0)
+
 
     while True:
 
@@ -174,8 +197,9 @@ def main():
         # Getting the largest object's centroid coordinates
         centroid = get_centroid_largest(mask_largest)
 
-        # Showing marker in the original image
-        frame = cv2.circle(frame, centroid, 5, (255, 0, 0), -1)
+        if centroid != (0, 0):
+            # Showing marker in the original image
+            frame = cv2.circle(frame, centroid, 5, (255, 0, 0), -1)
 
         pressed = cv2.waitKey(50)
 
@@ -211,10 +235,13 @@ def main():
 
         # To start and stop painting
         if pressed & 0xFF == ord('p'):
+            previous_point = centroid
             if painting is False:
                 painting = True
+                print('\nPAINTING...\n')
             else:
                 painting = False
+                print('\nNOT PAINTING.\n')
 
         # ....................... Changing brush size ......................
 
