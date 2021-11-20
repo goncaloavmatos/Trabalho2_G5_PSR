@@ -58,23 +58,24 @@ def get_centroid_largest(mask_largest):
 
     if len(centroids) == 1:  # If no object is detected, put marker on the origin
         centroid = (0, 0)
+        reality = False
     else:
         centroid = centroids[1]  # Save the largest object's centroid as a tuple
-
+        reality = True
     centroid = (int(round(centroid[0])), int(round(centroid[1])))
 
-    return centroid
+    return centroid, reality
 
 # ========================================================
 # .................. Function: PAINTING...................
 # ========================================================
 
 
-def draw_on_whiteboard(img, marker_coord, painting_true, brush_size):
+def draw_on_whiteboard(img, marker_coord, val, painting_true, brush_size):
     global previous_point
     dist = calculate_distance(previous_point, marker_coord)
 
-    if painting_true and dist < 50:
+    if painting_true and dist < 25 and val:
 
         img = cv2.circle(img, marker_coord, brush_size, colour, -1)
         img = cv2.line(img, previous_point, marker_coord, colour, brush_size+5)
@@ -195,7 +196,7 @@ def main():
         # .......... Setting up the point that will draw in the whiteboard ...............
 
         # Getting the largest object's centroid coordinates
-        centroid = get_centroid_largest(mask_largest)
+        centroid, val = get_centroid_largest(mask_largest)
 
         if centroid != (0, 0):
             # Showing marker in the original image
@@ -261,7 +262,7 @@ def main():
                 brush_size -= 2
 
         # ................Calling the function tha paints the whiteboard ................
-        whiteboard = draw_on_whiteboard(whiteboard, centroid, painting, brush_size)
+        whiteboard = draw_on_whiteboard(whiteboard, centroid, val, painting, brush_size)
 
         # Showing images
         cv2.imshow('Capture', frame)
