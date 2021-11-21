@@ -81,19 +81,41 @@ def draw_on_whiteboard(img, marker_coord, val, painting_true, brush_size):
 
     # If we are painting and the distance between the 2 points isn't too big
     # And val is True (for debugging)
-    if painting_true and dist < 25 and val:
 
-        # paints circle where the centroid is detected
-        # divide brush size by to permit a radius of 1
-        img = cv2.circle(img, marker_coord, int(brush_size/2), colour, -1)
+    # ............. Shake prevention ..........................
+    # Only paints if the distance between points is small
+    if usp:
+        if painting_true and dist < 35 and val:
 
-        img = cv2.line(img, previous_point, marker_coord, colour, brush_size)  # unites close circles with line
+            # paints circle where the centroid is detected
+            # divide brush size by to permit a radius of 1
+            img = cv2.circle(img, marker_coord, int(brush_size/2), colour, -1)
 
-        previous_point = marker_coord  # saves the current point to be the previous point in the next iteration
+            img = cv2.line(img, previous_point, marker_coord, colour, brush_size)  # unites close circles with line
 
+            previous_point = marker_coord  # saves the current point to be the previous point in the next iteration
+
+        else:
+            # doesn't paint but saves the current point to be the previous point in the next iteration
+            previous_point = marker_coord
+
+    # ............. Without shake prevention ..........................
+    # Paints with no regards of the distance between points
     else:
-        # doesn't paint but saves the current point to be the previous point in the next iteration
-        previous_point = marker_coord
+
+        if painting_true and val:
+
+            # paints circle where the centroid is detected
+            # divide brush size by to permit a radius of 1
+            img = cv2.circle(img, marker_coord, int(brush_size / 2), colour, -1)
+
+            img = cv2.line(img, previous_point, marker_coord, colour, brush_size)  # unites close circles with line
+
+            previous_point = marker_coord  # saves the current point to be the previous point in the next iteration
+
+        else:
+            # doesn't paint but saves the current point to be the previous point in the next iteration
+            previous_point = marker_coord
 
     return img
 
@@ -127,8 +149,12 @@ def main():
 
     parser = argparse.ArgumentParser()
     parser.add_argument('-j', '--json', type=str, required=True, help='Full path to json file.')
+    parser.add_argument('-usp', '--use_shake_prevention', action='store_true', help='Prevents brush from drifting with big variations of the centroid.')
     args = vars(parser.parse_args())
     color_segment = args['json']
+
+    global usp
+    usp = args['use_shake_prevention']
 
     # ................ Presentation .........................
 
