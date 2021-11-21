@@ -251,7 +251,8 @@ def main():
 
         if centroid != (0, 0):
             # Showing marker in the original image
-            frame = cv2.circle(frame, centroid, 5, colour, -1)
+            #frame = cv2.circle(frame, centroid, 5, colour, -1)
+            frame = cv2.putText(frame, 'x', (centroid[0]-10, centroid[1]+8), cv2.FONT_HERSHEY_PLAIN, 2, colour, 2)
         # ..................................................................
 
         # To clear the board
@@ -273,8 +274,8 @@ def main():
         # ....................... Changing brush size ......................
 
         if pressed & 0xFF == ord('+'):
-            if brush_size == 45:  # To prevent brush size from getting above the maximum of 45
-                brush_size = 45
+            if brush_size == 55:  # To prevent brush size from getting above the maximum of 55
+                brush_size = 55
                 print(Fore.YELLOW + Style.BRIGHT + Back.RED + '\n'+' Brush size is already at the MAXIMUM' + Style.RESET_ALL)
 
             else:
@@ -283,7 +284,7 @@ def main():
         if pressed & 0xFF == ord('-'):
             if brush_size == 1:  # To prevent brush size from getting below the minimum of 1
                 brush_size = 1
-                print(Fore.YELLOW + Style.BRIGHT + Back.RED + '\n'+' Brush size is already at the minimum' + Style.RESET_ALL)
+                print(Fore.RED + Style.BRIGHT + Back.YELLOW + '\n'+' Brush size is already at the minimum' + Style.RESET_ALL)
             else:
                 brush_size -= 2
 
