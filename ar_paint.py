@@ -5,12 +5,15 @@ import cv2
 import numpy as np
 from colorama import Fore, Style, Back
 import math
+import time
 
 # ========================================================
 # ........... Function: DISTANCE BETWEEN POINTS ..........
 # ========================================================
 
 # To help with Funcionalidade Avançada 1
+
+
 def calculate_distance(point1, point2):
     x1, y1 = point1[0], point1[1]
     x2, y2 = point2[0], point2[1]
@@ -93,6 +96,18 @@ def draw_on_whiteboard(img, marker_coord, val, painting_true, brush_size):
         previous_point = marker_coord
 
     return img
+
+# ========================================================
+# .......... Function: CURRENT DATE STRING................
+# ========================================================
+# To save image EX: drawing_Tue_Sep_15_10:36:39_2020.png
+
+
+def current_date():
+    named_tuple = time.localtime()  # get struct_time
+    time_string = time.strftime("%a_%b_%d_%H:%M:%S_%Y", named_tuple)
+
+    return time_string
 
 
 # =================================================================================================
@@ -275,6 +290,15 @@ def main():
         # Showing images
         cv2.imshow('Capture', frame)
         cv2.imshow('Whiteboard', whiteboard)
+
+
+        # To save image EX: drawing_Tue_Sep_15_10:36:39_2020.png
+        if pressed & 0xFF == ord('w'):
+
+            save_string = "drawing_" + current_date() + ".png"
+            cv2.imwrite(save_string, whiteboard)
+
+            print('Saved image as: ' + Style.BRIGHT + Fore.LIGHTBLUE_EX + save_string + Style.RESET_ALL)
 
     cam.release()
     cv2.destroyAllWindows()
