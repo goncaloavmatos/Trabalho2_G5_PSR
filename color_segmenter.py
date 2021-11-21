@@ -4,6 +4,7 @@ import argparse
 import cv2
 import numpy as np
 import json
+from colorama import Fore, Back, Style
 
 # ............... Global Variables ................................
 
@@ -55,10 +56,14 @@ def main():
     window_original = 'Original'
     window_segment = 'Color segmenter'
     global image
-    print('Use the trackbars to change the limits\n'
-          'Press:'
-          'q - quit the programme;'
-          'w - save the limits in a file (limits.json) and quit the programme.')
+    # ................ Presentation .........................
+
+    print(Fore.LIGHTBLUE_EX + Style.BRIGHT + '\n            COLOR SEGMENTER' + Style.RESET_ALL)
+    print('___________________________________________________\n')
+    print('Use the trackbars to change the limits\n\n'
+          'Press:\n'
+          'q - quit the programme;\n'
+          'w - save the limits in a file (limits.json) and quit the programme.\n')
 
     # ............... Input arguments .........................
 
@@ -70,7 +75,9 @@ def main():
 
     cap = cv2.VideoCapture(0)  # Load live image
     cv2.namedWindow(window_original, cv2.WINDOW_AUTOSIZE)
+    cv2.moveWindow(window_original, 40, 30)
     cv2.namedWindow(window_segment, cv2.WINDOW_AUTOSIZE)
+    cv2.moveWindow(window_segment, 700, 30)
 
 
     # ................Create Trackbars...............................................
