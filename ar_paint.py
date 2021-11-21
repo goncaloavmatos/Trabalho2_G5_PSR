@@ -298,7 +298,7 @@ def main():
             save_string = "drawing_" + current_date() + ".png"
             cv2.imwrite(save_string, whiteboard)
 
-            print('Saved image as: ' + Style.BRIGHT + Fore.LIGHTBLUE_EX + save_string + Style.RESET_ALL)
+            print('\nSaved image as: ' + Style.BRIGHT + Fore.LIGHTBLUE_EX + save_string + Style.RESET_ALL)
 
     cam.release()
     cv2.destroyAllWindows()
