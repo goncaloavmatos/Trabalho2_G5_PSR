@@ -217,6 +217,9 @@ def main():
         mask_largest = remove_small_objects(segmented_mask)
         cv2.imshow('Largest', mask_largest)
 
+        # adicionar 50 no canal verde dos pixels da mascara e retirar 10 ao azul e vermelho
+        cv2.add(frame, (-10, 50, -10, 0), dst=frame, mask=mask_largest)
+
         # .......... Setting up the point that will draw in the whiteboard ...............
 
         # Getting the largest object's centroid coordinates
