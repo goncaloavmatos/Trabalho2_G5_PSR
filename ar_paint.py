@@ -74,7 +74,6 @@ def get_centroid_largest(mask_largest):
 # ========================================================
 # Receives inputs and draws
 
-
 def draw_on_whiteboard(img, marker_coord, val, painting_true, brush_size):
     global previous_point # The last point before the marker
     dist = calculate_distance(previous_point, marker_coord)
@@ -123,13 +122,16 @@ def draw_on_whiteboard(img, marker_coord, val, painting_true, brush_size):
 # .......... Function: CURRENT DATE STRING................
 # ========================================================
 # To save image EX: drawing_Tue_Sep_15_10:36:39_2020.png
-
+def numbered_paint():
+    #For advanced function 4
+    pass
 
 def current_date():
     named_tuple = time.localtime()  # get struct_time
     time_string = time.strftime("%a_%b_%d_%H:%M:%S_%Y", named_tuple)
 
     return time_string
+
 
 
 # =================================================================================================
@@ -150,11 +152,15 @@ def main():
     parser = argparse.ArgumentParser()
     parser.add_argument('-j', '--json', type=str, required=True, help='Full path to json file.')
     parser.add_argument('-usp', '--use_shake_prevention', action='store_true', help='Prevents brush from drifting with big variations of the centroid.')
+    parser.add_argument('-nump', '--numbered_paint', action='store_true', help='Enables the numbered paint mode')
     args = vars(parser.parse_args())
     color_segment = args['json']
 
     global usp
     usp = args['use_shake_prevention']
+    global nump
+    nump = args['numbered_paint']
+
 
     # ................ Presentation .........................
 
@@ -202,12 +208,17 @@ def main():
     # .................PROCESSING IMAGE ......................
     # ========================================================
     cam = cv2.VideoCapture(0)
+    global frame
     ret, frame = cam.read()  # get an image from the camera
 
-    # .............. Creating whiteboard with same size as shape ................
-
-    whiteboard = np.zeros(frame.shape, dtype=np.uint8)  # Set whiteboard size as the size of the captured image
-    whiteboard.fill(255)  # make every pixel white
+    if nump:
+        numbered_paint()
+        whiteboard = np.zeros(frame.shape, dtype=np.uint8)
+        whiteboard.fill(100)
+    else:
+        # .............. Creating whiteboard with same size as shape ................
+        whiteboard = np.zeros(frame.shape, dtype=np.uint8)  # Set whiteboard size as the size of the captured image
+        whiteboard.fill(255)  # make every pixel white
 
 
     # ..................... Starting values ...................................
@@ -283,8 +294,13 @@ def main():
 
         # To clear the board
         if pressed & 0xFF == ord('c'):
-            whiteboard = np.zeros(frame.shape, dtype=np.uint8)
-            whiteboard.fill(255)  # or img[:] = 255
+            if nump:
+                whiteboard = np.zeros(frame.shape, dtype=np.uint8)
+                whiteboard.fill(100)
+                numbered_paint()
+            else:
+                whiteboard = np.zeros(frame.shape, dtype=np.uint8)
+                whiteboard.fill(255)  # or img[:] = 255
             print('\nCLEARED THE WHITEBOARD')
 
         # To start and stop painting
