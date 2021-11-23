@@ -122,15 +122,59 @@ def draw_on_whiteboard(img, marker_coord, val, painting_true, brush_size):
 # .......... Function: CURRENT DATE STRING................
 # ========================================================
 # To save image EX: drawing_Tue_Sep_15_10:36:39_2020.png
-def numbered_paint():
-    #For advanced function 4
-    pass
 
 def current_date():
     named_tuple = time.localtime()  # get struct_time
     time_string = time.strftime("%a_%b_%d_%H:%M:%S_%Y", named_tuple)
 
     return time_string
+
+# ========================================================
+# .......... Advanced function 4................
+# ========================================================
+
+def numbered_paint():
+    #For advanced function 4
+    # img_contour = cv2.drawContours(img_nump, contours_nump_b, -1,(0,0,0), 3)
+    dim = (frame.shape[1], frame.shape[0])
+    img_nump_path = './teste.png'
+    img_nump = cv2.resize(cv2.imread(img_nump_path, cv2.IMREAD_COLOR),dim)
+    img_nump_b, img_nump_g, img_nump_r = cv2.split(img_nump)
+    _,img_nump_b_tresh = cv2.threshold(img_nump_b,0,255,0)
+    _,img_nump_g_tresh = cv2.threshold(img_nump_g,0,255,0)
+    _,img_nump_r_tresh = cv2.threshold(img_nump_r,0,255,0)
+    #Find contours for blue
+    contours_nump_b, hierarchy = cv2.findContours(img_nump_b_tresh, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
+    for c in contours_nump_b:
+        # calculate moments for each contour
+        M = cv2.moments(c)
+        # calculate x,y coordinate of center
+        cX = int(M["m10"] / M["m00"])
+        cY = int(M["m01"] / M["m00"])
+        # add number 1 in the center position of each contour
+        cv2.putText(whiteboard, "1", (cX, cY), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 0, 0), 2)
+    contours_nump_g, hierarchy = cv2.findContours(img_nump_g_tresh, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
+    for c in contours_nump_g:
+        # calculate moments for each contour
+        M = cv2.moments(c)
+        # calculate x,y coordinate of center
+        cX = int(M["m10"] / M["m00"])
+        cY = int(M["m01"] / M["m00"])
+        # add number 1 in the center position of each contour
+        cv2.putText(whiteboard, "1", (cX, cY), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 0, 0), 2)
+    contours_nump_r, hierarchy = cv2.findContours(img_nump_r_tresh, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
+    for c in contours_nump_r:
+        # calculate moments for each contour
+        M = cv2.moments(c)
+        # calculate x,y coordinate of center
+        cX = int(M["m10"] / M["m00"])
+        cY = int(M["m01"] / M["m00"])
+        # add number 1 in the center position of each contour
+        cv2.putText(whiteboard, "1", (cX, cY), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 0, 0), 2)
+    global contours_2
+    contours_2=np.append(np.append(contours_nump_b,contours_nump_g),contours_nump_r)
+    pass
+
 
 
 
@@ -212,9 +256,11 @@ def main():
     ret, frame = cam.read()  # get an image from the camera
 
     if nump:
-        numbered_paint()
+        global whiteboard
         whiteboard = np.zeros(frame.shape, dtype=np.uint8)
-        whiteboard.fill(100)
+        whiteboard.fill(255)
+        numbered_paint()
+        cv2.drawContours(whiteboard, contours_2, -1,(0,0,0), 3)
     else:
         # .............. Creating whiteboard with same size as shape ................
         whiteboard = np.zeros(frame.shape, dtype=np.uint8)  # Set whiteboard size as the size of the captured image
