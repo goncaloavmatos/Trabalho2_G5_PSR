@@ -147,6 +147,8 @@ def centroids_paint(contour_paint, number):
         cY = int(M["m01"] / M["m00"])
         # add number in the center position of each contour
         cv2.putText(whiteboard, str(number), (cX, cY), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 0, 0), 2)
+
+
 def numbered_paint():
     # For advanced function 4
     dim = (frame.shape[1], frame.shape[0])
@@ -180,6 +182,8 @@ def paint_pontuation(paint, paint_region):
     pixels_right = np.count_nonzero(cv2.bitwise_and(paint, paint_region))
     pixels_wrong = np.count_nonzero(cv2.bitwise_and(paint, cv2.bitwise_not(paint_region)))
     return pixels_total, pixels_region, pixels_right, pixels_wrong
+
+
 # =================================================================================================
 # ............................................. MAIN FUNCTION .....................................
 # =================================================================================================
@@ -393,14 +397,16 @@ def main():
             print('\nSaved image as: ' + Style.BRIGHT + Fore.LIGHTBLUE_EX + save_string + Style.RESET_ALL)
     cam.release()
     cv2.destroyAllWindows()
-    #------ Paint rating ------
+    # ------ Paint rating ------
     # if nump:
     #     ratequestion = input('Do you want to rate your painting? (y or n)')
     #     if
     whiteboard[np.where((whiteboard == [255, 255, 255]).all(axis=2))] = [0, 0, 0]
     paint_b, paint_g, paint_r = cv2.split(whiteboard)
+    #--------for test ------
     print(paint_pontuation(paint_b, img_nump_b_tresh))
-
+    print(paint_pontuation(paint_g, img_nump_g_tresh))
+    print(paint_pontuation(paint_r, img_nump_r_tresh))
 
 if __name__ == '__main__':
     main()
