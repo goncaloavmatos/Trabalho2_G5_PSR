@@ -160,8 +160,8 @@ def numbered_paint():
         # calculate x,y coordinate of center
         cX = int(M["m10"] / M["m00"])
         cY = int(M["m01"] / M["m00"])
-        # add number 1 in the center position of each contour
-        cv2.putText(whiteboard, "1", (cX, cY), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 0, 0), 2)
+        # add number 2 in the center position of each contour
+        cv2.putText(whiteboard, "2", (cX, cY), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 0, 0), 2)
     contours_nump_r, hierarchy = cv2.findContours(img_nump_r_tresh, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
     for c in contours_nump_r:
         # calculate moments for each contour
@@ -169,8 +169,8 @@ def numbered_paint():
         # calculate x,y coordinate of center
         cX = int(M["m10"] / M["m00"])
         cY = int(M["m01"] / M["m00"])
-        # add number 1 in the center position of each contour
-        cv2.putText(whiteboard, "1", (cX, cY), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 0, 0), 2)
+        # add number 3 in the center position of each contour
+        cv2.putText(whiteboard, "3", (cX, cY), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 0, 0), 2)
     global contours_2
     contours_2=np.append(np.append(contours_nump_b,contours_nump_g),contours_nump_r)
     pass
