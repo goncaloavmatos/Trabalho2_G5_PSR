@@ -138,10 +138,14 @@ def numbered_paint():
     # img_contour = cv2.drawContours(img_nump, contours_nump_b, -1,(0,0,0), 3)
     dim = (frame.shape[1], frame.shape[0])
     img_nump_path = './teste.png'
+    global img_nump
     img_nump = cv2.resize(cv2.imread(img_nump_path, cv2.IMREAD_COLOR),dim)
     img_nump_b, img_nump_g, img_nump_r = cv2.split(img_nump)
+    global img_nump_b_tresh
     _,img_nump_b_tresh = cv2.threshold(img_nump_b,0,255,0)
+    global img_nump_g_tresh
     _,img_nump_g_tresh = cv2.threshold(img_nump_g,0,255,0)
+    global img_nump_r_tresh
     _,img_nump_r_tresh = cv2.threshold(img_nump_r,0,255,0)
     #Find contours for blue
     contours_nump_b, hierarchy = cv2.findContours(img_nump_b_tresh, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
@@ -172,10 +176,9 @@ def numbered_paint():
         # add number 3 in the center position of each contour
         cv2.putText(whiteboard, "3", (cX, cY), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 0, 0), 2)
     global contours_2
-    contours_2=np.append(np.append(contours_nump_b,contours_nump_g),contours_nump_r)
-    pass
-
-
+    contours_2 = np.append(np.append(contours_nump_b,contours_nump_g),contours_nump_r)
+# def paint_pontuation(mask_nump):
+#     cv2.bitwise_and(whiteboard,img_nump, mask=mask_nump)
 
 
 # =================================================================================================
@@ -196,7 +199,7 @@ def main():
     parser = argparse.ArgumentParser()
     parser.add_argument('-j', '--json', type=str, required=True, help='Full path to json file.')
     parser.add_argument('-usp', '--use_shake_prevention', action='store_true', help='Prevents brush from drifting with big variations of the centroid.')
-    parser.add_argument('-nump', '--numbered_paint', action='store_true', help='Enables the numbered paint mode')
+    parser.add_argument('-nump', '--numbered_paint', action='store_true', help='Enables the numbered paint mode. Full path to the image')
     args = vars(parser.parse_args())
     color_segment = args['json']
 
@@ -204,7 +207,6 @@ def main():
     usp = args['use_shake_prevention']
     global nump
     nump = args['numbered_paint']
-
 
     # ................ Presentation .........................
 
@@ -382,7 +384,6 @@ def main():
         # Showing images
         cv2.imshow('Capture', frame)
         cv2.imshow('Whiteboard', whiteboard)
-
 
         # To save image EX: drawing_Tue_Sep_15_10:36:39_2020.png
         if pressed & 0xFF == ord('w'):
