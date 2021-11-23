@@ -140,22 +140,21 @@ def current_date():
 # ========================================================
 def centroids_paint(contour_paint, number):
     for c in contour_paint:
-        # calculate moments for each contour
+        # Calculate moments for each contour
         M = cv2.moments(c)
-        # calculate x,y coordinate of center
+        # Calculate x,y coordinate of center
         cX = int(M["m10"] / M["m00"])
         cY = int(M["m01"] / M["m00"])
-        # add number in the center position of each contour
+        # Add number in the center position of each contour
         cv2.putText(whiteboard, str(number), (cX, cY), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 0, 0), 2)
 
 
 def numbered_paint():
-    # For advanced function 4
-    dim = (frame.shape[1], frame.shape[0])
-    img_nump_path = './teste.png'
-    global img_nump
-    img_nump = cv2.resize(cv2.imread(img_nump_path, cv2.IMREAD_COLOR), dim)
-    img_nump_b, img_nump_g, img_nump_r = cv2.split(img_nump)
+    dim = (frame.shape[1], frame.shape[0])  # Get video size from webcam
+    img_nump_path = './teste.png'   # Get image path
+    img_nump = cv2.resize(cv2.imread(img_nump_path, cv2.IMREAD_COLOR), dim)     # Resize image
+    img_nump_b, img_nump_g, img_nump_r = cv2.split(img_nump)    # Split image in blue, green and red
+    # Binarize each color in the image
     global img_nump_b_tresh
     _, img_nump_b_tresh = cv2.threshold(img_nump_b, 0, 255, 0)
     global img_nump_g_tresh
@@ -177,10 +176,11 @@ def numbered_paint():
 
 
 def paint_pontuation(paint, paint_region):
-    pixels_total = np.count_nonzero(frame)
-    pixels_region = np.count_nonzero(paint_region)
-    pixels_right = np.count_nonzero(cv2.bitwise_and(paint, paint_region))
-    pixels_wrong = np.count_nonzero(cv2.bitwise_and(paint, cv2.bitwise_not(paint_region)))
+    pixels_total = np.count_nonzero(frame)  # Get the number of all the pixels in the image
+    pixels_region = np.count_nonzero(paint_region)  # Get the number of pixels in the regions with a specific color
+    pixels_right = np.count_nonzero(cv2.bitwise_and(paint, paint_region))   # Get the number of pixels in the right spot
+    pixels_wrong = np.count_nonzero(cv2.bitwise_and(paint, cv2.bitwise_not(paint_region)))  # Get the number of
+    # pixels in the wrong spot
     return pixels_total, pixels_region, pixels_right, pixels_wrong
 
 
@@ -403,10 +403,11 @@ def main():
     #     if
     whiteboard[np.where((whiteboard == [255, 255, 255]).all(axis=2))] = [0, 0, 0]
     paint_b, paint_g, paint_r = cv2.split(whiteboard)
-    #--------for test ------
+    # --------for test ------
     print(paint_pontuation(paint_b, img_nump_b_tresh))
     print(paint_pontuation(paint_g, img_nump_g_tresh))
     print(paint_pontuation(paint_r, img_nump_r_tresh))
+
 
 if __name__ == '__main__':
     main()
