@@ -7,6 +7,7 @@ from colorama import Fore, Style, Back
 import math
 import time
 
+
 # ========================================================
 # ........... Function: DISTANCE BETWEEN POINTS ..........
 # ========================================================
@@ -17,8 +18,9 @@ import time
 def calculate_distance(point1, point2):
     x1, y1 = point1[0], point1[1]
     x2, y2 = point2[0], point2[1]
-    dist = math.sqrt((x2 - x1)**2 + (y2 - y1)**2)
+    dist = math.sqrt((x2 - x1) ** 2 + (y2 - y1) ** 2)
     return dist
+
 
 # ========================================================
 # ...... Function: ISOLATE LARGEST OBJECT IN A MASK ......
@@ -46,6 +48,7 @@ def remove_small_objects(mask):
 
     return mask_largest
 
+
 # ========================================================
 # ...Function: GET LARGEST OBJECT'S CENTROID COORDINATES...
 # ========================================================
@@ -67,7 +70,8 @@ def get_centroid_largest(mask_largest):
         reality = True
     centroid = (int(round(centroid[0])), int(round(centroid[1])))
 
-    return centroid, reality   # reality is just for debugging
+    return centroid, reality  # reality is just for debugging
+
 
 # ========================================================
 # .................. Function: PAINTING...................
@@ -75,7 +79,7 @@ def get_centroid_largest(mask_largest):
 # Receives inputs and draws
 
 def draw_on_whiteboard(img, marker_coord, val, painting_true, brush_size):
-    global previous_point # The last point before the marker
+    global previous_point  # The last point before the marker
     dist = calculate_distance(previous_point, marker_coord)
 
     # If we are painting and the distance between the 2 points isn't too big
@@ -88,7 +92,7 @@ def draw_on_whiteboard(img, marker_coord, val, painting_true, brush_size):
 
             # paints circle where the centroid is detected
             # divide brush size by to permit a radius of 1
-            img = cv2.circle(img, marker_coord, int(brush_size/2), colour, -1)
+            img = cv2.circle(img, marker_coord, int(brush_size / 2), colour, -1)
 
             img = cv2.line(img, previous_point, marker_coord, colour, brush_size)  # unites close circles with line
 
@@ -118,6 +122,7 @@ def draw_on_whiteboard(img, marker_coord, val, painting_true, brush_size):
 
     return img
 
+
 # ========================================================
 # .......... Function: CURRENT DATE STRING................
 # ========================================================
@@ -129,56 +134,61 @@ def current_date():
 
     return time_string
 
+
 # ========================================================
 # .......... Advanced function 4................
 # ========================================================
+def centroids_paint(contour_paint, number):
+    for c in contour_paint:
+        # Calculate moments for each contour
+        M = cv2.moments(c)
+        # Calculate x,y coordinate of center
+        cX = int(M["m10"] / M["m00"])
+        cY = int(M["m01"] / M["m00"])
+        # Add number in the center position of each contour
+        cv2.putText(whiteboard, str(number), (cX, cY), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 0, 0), 2)
+
 
 def numbered_paint():
-    #For advanced function 4
-    # img_contour = cv2.drawContours(img_nump, contours_nump_b, -1,(0,0,0), 3)
-    dim = (frame.shape[1], frame.shape[0])
-    img_nump_path = './teste.png'
-    global img_nump
-    img_nump = cv2.resize(cv2.imread(img_nump_path, cv2.IMREAD_COLOR),dim)
-    img_nump_b, img_nump_g, img_nump_r = cv2.split(img_nump)
+    dim = (frame.shape[1], frame.shape[0])  # Get video size from webcam
+    img_nump_path = './teste.png'  # Get image path
+    img_nump = cv2.resize(cv2.imread(img_nump_path, cv2.IMREAD_COLOR), dim)  # Resize image
+    img_nump_b, img_nump_g, img_nump_r = cv2.split(img_nump)  # Split image in blue, green and red
+    # Binarize each color in the image
     global img_nump_b_tresh
-    _,img_nump_b_tresh = cv2.threshold(img_nump_b,0,255,0)
+    _, img_nump_b_tresh = cv2.threshold(img_nump_b, 0, 255, 0)
     global img_nump_g_tresh
-    _,img_nump_g_tresh = cv2.threshold(img_nump_g,0,255,0)
+    _, img_nump_g_tresh = cv2.threshold(img_nump_g, 0, 255, 0)
     global img_nump_r_tresh
-    _,img_nump_r_tresh = cv2.threshold(img_nump_r,0,255,0)
-    #Find contours for blue
+    _, img_nump_r_tresh = cv2.threshold(img_nump_r, 0, 255, 0)
+    # Find contours for blue
     contours_nump_b, hierarchy = cv2.findContours(img_nump_b_tresh, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
-    for c in contours_nump_b:
-        # calculate moments for each contour
-        M = cv2.moments(c)
-        # calculate x,y coordinate of center
-        cX = int(M["m10"] / M["m00"])
-        cY = int(M["m01"] / M["m00"])
-        # add number 1 in the center position of each contour
-        cv2.putText(whiteboard, "1", (cX, cY), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 0, 0), 2)
+    centroids_paint(contours_nump_b, 1)
+    # Find contours for green
     contours_nump_g, hierarchy = cv2.findContours(img_nump_g_tresh, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
-    for c in contours_nump_g:
-        # calculate moments for each contour
-        M = cv2.moments(c)
-        # calculate x,y coordinate of center
-        cX = int(M["m10"] / M["m00"])
-        cY = int(M["m01"] / M["m00"])
-        # add number 2 in the center position of each contour
-        cv2.putText(whiteboard, "2", (cX, cY), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 0, 0), 2)
+    centroids_paint(contours_nump_g, 2)
+    # Find contours for red
     contours_nump_r, hierarchy = cv2.findContours(img_nump_r_tresh, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
-    for c in contours_nump_r:
-        # calculate moments for each contour
-        M = cv2.moments(c)
-        # calculate x,y coordinate of center
-        cX = int(M["m10"] / M["m00"])
-        cY = int(M["m01"] / M["m00"])
-        # add number 3 in the center position of each contour
-        cv2.putText(whiteboard, "3", (cX, cY), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 0, 0), 2)
+    centroids_paint(contours_nump_r, 3)
+    # Merge all contours
     global contours_2
-    contours_2 = np.append(np.append(contours_nump_b,contours_nump_g),contours_nump_r)
-# def paint_pontuation(mask_nump):
-#     cv2.bitwise_and(whiteboard,img_nump, mask=mask_nump)
+    contours_2 = np.append(np.append(contours_nump_b, contours_nump_g), contours_nump_r)
+
+
+def paint_pontuation(paint, paint_region):
+    # pixels_total = np.count_nonzero(frame)  # Get the number of all the pixels in the image
+    pixels_region = np.count_nonzero(paint_region)  # Get the number of pixels in the regions with a specific color
+    pixels_right = np.count_nonzero(cv2.bitwise_and(paint, paint_region))  # Get the number of pixels in the right spot
+    pixels_wrong = np.count_nonzero(cv2.bitwise_and(paint, cv2.bitwise_not(paint_region)))  # Get the number of
+    # pixels in the wrong spot
+    pixels_painted = pixels_right + pixels_wrong  # Amount of pixels painted with a specific color
+    percentage_region_painted = round((pixels_right / pixels_region) * 100, 2)  # Percentage of a region painted with the right
+    # color
+    if pixels_painted != 0:
+        percentage_accuracy = round((pixels_right / pixels_painted) * 100, 2)  # Accuracy
+    else:
+        percentage_accuracy = None
+    return percentage_region_painted, percentage_accuracy
 
 
 # =================================================================================================
@@ -187,19 +197,21 @@ def numbered_paint():
 
 
 def main():
-
     # ========================================================
     # .................INITIALIZATION ........................
     # ========================================================
 
     global colour
     global previous_point
+    p1 = (320, 240)
     # ..............Specify file directory....................
 
     parser = argparse.ArgumentParser()
     parser.add_argument('-j', '--json', type=str, required=True, help='Full path to json file.')
-    parser.add_argument('-usp', '--use_shake_prevention', action='store_true', help='Prevents brush from drifting with big variations of the centroid.')
-    parser.add_argument('-nump', '--numbered_paint', action='store_true', help='Enables the numbered paint mode. Full path to the image')
+    parser.add_argument('-usp', '--use_shake_prevention', action='store_true',
+                        help='Prevents brush from drifting with big variations of the centroid.')
+    parser.add_argument('-nump', '--numbered_paint', action='store_true',
+                        help='Enables the numbered paint mode. Full path to the image')
     args = vars(parser.parse_args())
     color_segment = args['json']
 
@@ -262,19 +274,18 @@ def main():
         whiteboard = np.zeros(frame.shape, dtype=np.uint8)
         whiteboard.fill(255)
         numbered_paint()
-        cv2.drawContours(whiteboard, contours_2, -1,(0,0,0), 3)
+        cv2.drawContours(whiteboard, contours_2, -1, (0, 0, 0), 3)
     else:
         # .............. Creating whiteboard with same size as shape ................
         whiteboard = np.zeros(frame.shape, dtype=np.uint8)  # Set whiteboard size as the size of the captured image
         whiteboard.fill(255)  # make every pixel white
-
 
     # ..................... Starting values ...................................
     # Specifying that at the start the user is not painting
     painting = False
     brush_size = 5
     previous_point = (0, 0)
-    colour = (255, 0, 0) # To start with blue by default
+    colour = (255, 0, 0)  # To start with blue by default
 
     while True:
 
@@ -336,9 +347,18 @@ def main():
 
         if centroid != (0, 0):
             # Showing marker in the original image
-            #frame = cv2.circle(frame, centroid, 5, colour, -1)
-            frame = cv2.putText(frame, 'x', (centroid[0]-10, centroid[1]+8), cv2.FONT_HERSHEY_PLAIN, 2, colour, 2)
+            # frame = cv2.circle(frame, centroid, 5, colour, -1)
+            frame = cv2.putText(frame, 'x', (centroid[0] - 10, centroid[1] + 8), cv2.FONT_HERSHEY_PLAIN, 2, colour, 2)
         # ..................................................................
+        if pressed & 0xFF == ord('f'):
+            p1 = centroid
+        if pressed & 0xFF == ord('s'):
+            p2 = centroid
+            cv2.rectangle(whiteboard, p1, p2, colour, brush_size)
+        if pressed & 0xFF == ord('o'):
+            p2 = centroid
+            p3 = calculate_distance(p1, p2)
+            cv2.circle(whiteboard, p1, int(p3), colour, brush_size)
 
         # To clear the board
         if pressed & 0xFF == ord('c'):
@@ -366,7 +386,8 @@ def main():
         if pressed & 0xFF == ord('+'):
             if brush_size == 55:  # To prevent brush size from getting above the maximum of 55
                 brush_size = 55
-                print(Fore.YELLOW + Style.BRIGHT + Back.RED + '\n'+' Brush size is already at the MAXIMUM' + Style.RESET_ALL)
+                print(
+                    Fore.YELLOW + Style.BRIGHT + Back.RED + '\n' + ' Brush size is already at the MAXIMUM' + Style.RESET_ALL)
 
             else:
                 brush_size += 2
@@ -374,7 +395,8 @@ def main():
         if pressed & 0xFF == ord('-'):
             if brush_size == 1:  # To prevent brush size from getting below the minimum of 1
                 brush_size = 1
-                print(Fore.RED + Style.BRIGHT + Back.YELLOW + '\n'+' Brush size is already at the minimum' + Style.RESET_ALL)
+                print(
+                    Fore.RED + Style.BRIGHT + Back.YELLOW + '\n' + ' Brush size is already at the minimum' + Style.RESET_ALL)
             else:
                 brush_size -= 2
 
@@ -384,17 +406,46 @@ def main():
         # Showing images
         cv2.imshow('Capture', frame)
         cv2.imshow('Whiteboard', whiteboard)
-
         # To save image EX: drawing_Tue_Sep_15_10:36:39_2020.png
         if pressed & 0xFF == ord('w'):
-
             save_string = "drawing_" + current_date() + ".png"
             cv2.imwrite(save_string, whiteboard)
 
             print('\nSaved image as: ' + Style.BRIGHT + Fore.LIGHTBLUE_EX + save_string + Style.RESET_ALL)
-
     cam.release()
     cv2.destroyAllWindows()
+    # ------ Paint rating ------
+    if nump:
+        while True:
+            try:
+                rate_question = str(input('Do you want to rate your painting? (y or n) \n'))
+            except ValueError:
+                continue
+
+            if str(rate_question) != 'y' and str(rate_question) != 'n':
+                print('Wrong input! You typed ' + str(rate_question) + ' and you must type y or n')
+                print(rate_question)
+                continue
+            else:
+                break
+        if rate_question == 'y':
+            whiteboard[np.where((whiteboard == [255, 255, 255]).all(axis=2))] = [0, 0, 0]
+            paint_b, paint_g, paint_r = cv2.split(whiteboard)
+            if paint_pontuation(paint_b, img_nump_b_tresh)[1] == None:
+                print('You did not paint in blue')
+            else:
+                print('You painted ' + str(paint_pontuation(paint_b, img_nump_b_tresh)[0]) + '% of the blue region with ' +
+                      str(paint_pontuation(paint_b, img_nump_b_tresh)[1]) + '% of accuracy')
+            if paint_pontuation(paint_g, img_nump_g_tresh)[1] == None:
+                print('You did not paint in green')
+            else:
+                print('You painted ' + str(paint_pontuation(paint_g, img_nump_g_tresh)[0]) + '% of the green region with ' +
+                      str(paint_pontuation(paint_g, img_nump_g_tresh)[1]) + '% of accuracy')
+            if paint_pontuation(paint_r, img_nump_r_tresh)[1] == None:
+                print('You did not paint in red')
+            else:
+                print('You painted ' + str(paint_pontuation(paint_r, img_nump_r_tresh)[0]) + '% of the red region with ' +
+                      str(paint_pontuation(paint_r, img_nump_r_tresh)[1]) + '% of accuracy')
 
 
 if __name__ == '__main__':
