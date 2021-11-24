@@ -146,9 +146,9 @@ def main():
         if pressed_key == ord('w'):
             file_name = 'limits.json'
             with open(file_name, 'w') as file_handle:
-                print('Saving dictionary with the current limits...')
+                print('\n\nSaving dictionary with the current limits...')
                 json.dump(ranges,  file_handle)
-                print('Limits saved.')
+                print('\n\nLimits saved in file: ' + Fore.LIGHTBLUE_EX + 'limits.json\n\n' + Style.RESET_ALL)
             break
 
 if __name__ == '__main__':
