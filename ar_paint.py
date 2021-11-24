@@ -294,17 +294,16 @@ def main():
     print('"p" -> Start/stop painting\n'
           '"q" -> Quit\n\n'
           'Colours\n'
-          '"r" -> Change color to red\n'
-          '"g" -> Change color to green\n'
-          '"b" -> Change color to blue (Default)\n'
-          '"spacebar" -> Eraser\n\n'
+          + Fore.RED + '"r"' + Style.RESET_ALL + '-> Change color to '+Fore.RED+'red\n'+ Style.RESET_ALL +
+          Fore.GREEN +'"g"' + Style.RESET_ALL + ' -> Change color to '+ Fore.GREEN +'green\n' + Style.RESET_ALL +
+          Fore.BLUE +'"b"' + Style.RESET_ALL + ' -> Change color to '+ Fore.BLUE +'blue\n' + Style.RESET_ALL +
+          '"spacebar" -> '+ Fore.LIGHTMAGENTA_EX +'Eraser\n\n' + Style.RESET_ALL +
           'Edit brush size\n'
           '"+" -> make bigger\n'
           '"-" -> make smaller\n\n'
           'GEOMETRIC SHAPES\n'
-          '"i" -> initial point\n'
-          '"s" -> square\n'
-          '"o" -> circle')
+          '"s" -> start square, again to stop\n'
+          '"o" -> circle center, again to stop')
 
     print('\n\n\n Press "p" to start painting. Press it again to stop.\n\n')
 
