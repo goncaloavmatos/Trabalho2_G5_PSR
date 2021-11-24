@@ -200,20 +200,33 @@ def draw_shape(coord, shape_param, img, img_temp, colour, thickness):
 
     if coord['mouse'] != (0, 0) and coord['p1'] != (0, 0):
 
-        if shape_param['figure'] == 's':
+        # If s is pressed, starts rectangle drawing sequence
+        if shape_param['figure'] == 's':  # If s is pressed, starts rectangle drawing sequence
 
+            # If only first press has been made
             if shape_param['p1'] and not shape_param['p2']:
+                # first point: first press
+                # second: variable centroid
                 img_temp = cv2.rectangle(img_temp, coord['p1'], coord['mouse'], colour, thickness)
+
+            # If there is a second press
             if shape_param['p1'] and shape_param['p2']:
+                # first point: first press
+                # second: second press
                 img = cv2.rectangle(img, coord['p1'], coord['p2'], colour, thickness)
+
+                # puts variables back to false, so that next press ir perceived as a first
                 shape_param['p1'] = False
                 shape_param['p2'] = False
 
+        # If o is pressed, starts circle drawing sequence
         if shape_param['figure'] == 'o':
 
+            # If only first press has been made
             if shape_param['p1'] and not shape_param['p2']:
                 dist = int(calculate_distance(coord['p1'], coord['mouse']))
                 img_temp = cv2.circle(img_temp, coord['p1'], dist, colour, thickness)
+            # If there is a second press
             if shape_param['p1'] and shape_param['p2']:
                 dist = int(calculate_distance(coord['p1'], coord['p2']))
                 img = cv2.circle(img, coord['p1'], dist, colour, thickness)
@@ -485,10 +498,10 @@ def main():
 
             # ................ Detecting if a shape is being painted ................
 
-            if square_param['p1'] and not square_param['p2']:
+            if square_param['p1']:
                 drawing_square = True
 
-            if circle_param['p1'] and not circle_param['p2']:
+            if circle_param['p1']:
                 drawing_circle = True
 
             if (elipse_param['p1'] and not elipse_param['p2']) or (elipse_param['p1'] and elipse_param['p2'] and not elipse_param['p3']):
@@ -505,7 +518,7 @@ def main():
                 whiteboard, whiteboard_temp, circle_param = draw_shape(shape_coord, circle_param, whiteboard, whiteboard_temp, colour, brush_size)
                 cv2.imshow('Whiteboard', whiteboard_temp)
 
-            else:
+            if not drawing_square and not drawing_circle:
                 whiteboard = draw_on_whiteboard(whiteboard, centroid, val, painting, brush_size)
                 cv2.imshow('Whiteboard', whiteboard)
 
