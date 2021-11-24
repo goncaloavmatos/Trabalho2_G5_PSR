@@ -1,6 +1,7 @@
 #!/usr/bin/python3
 import argparse
 import json
+import copy
 import cv2
 import numpy as np
 from colorama import Fore, Style, Back
@@ -190,6 +191,38 @@ def paint_pontuation(paint, paint_region):
         percentage_accuracy = None
     return percentage_region_painted, percentage_accuracy
 
+# ========================================================
+# ............... FUNCTION: DRAW SHAPES ....................
+# ========================================================
+
+
+def draw_shape(coord, shape_param, img, img_temp, colour, thickness):
+
+    if coord['mouse'] != (0, 0) and coord['p1'] != (0, 0):
+
+        if shape_param['figure'] == 's':
+
+            if shape_param['p1'] and not shape_param['p2']:
+                img_temp = cv2.rectangle(img_temp, coord['p1'], coord['mouse'], colour, thickness)
+            if shape_param['p1'] and shape_param['p2']:
+                img = cv2.rectangle(img, coord['p1'], coord['p2'], colour, thickness)
+                shape_param['p1'] = False
+                shape_param['p2'] = False
+
+        if shape_param['figure'] == 'o':
+
+            if shape_param['p1'] and not shape_param['p2']:
+                dist = int(calculate_distance(coord['p1'], coord['mouse']))
+                img_temp = cv2.circle(img_temp, coord['p1'], dist, colour, thickness)
+            if shape_param['p1'] and shape_param['p2']:
+                dist = int(calculate_distance(coord['p1'], coord['p2']))
+                img = cv2.circle(img, coord['p1'], dist, colour, thickness)
+                shape_param['p1'] = False
+                shape_param['p2'] = False
+
+
+    return img, img_temp, shape_param
+
 
 # =================================================================================================
 # ............................................. MAIN FUNCTION .....................................
@@ -291,6 +324,20 @@ def main():
     previous_point = (0, 0)
     colour = (255, 0, 0)  # To start with blue by default
 
+    shape_coord = {'p1': None, 'p2': None, 'p3': None, 'mouse': None}
+
+    square_param = {'p1': False, 'p2': False, 'figure': 's'}
+    circle_param = {'p1': False, 'p2': False, 'figure': 'o'}
+    elipse_param = {'p1': False, 'p2': False, 'p3': False, 'figure': 'e'}
+
+    drawing_square = False
+    drawing_circle = False
+    drawing_elipse = False
+
+    # =======================================================================================
+    # .................................. CICLO WHILE .......................................
+    # =======================================================================================
+
     while True:
 
         # ........... initializing images and windows ..............................
@@ -306,6 +353,8 @@ def main():
         cv2.moveWindow('Mask', 40, 600)
         cv2.namedWindow('Largest', cv2.WINDOW_AUTOSIZE)
         cv2.moveWindow('Largest', 720, 600)
+
+        whiteboard_temp = copy.deepcopy(whiteboard)
 
         # ............Applying segmentation limits to create a mask ......................
 
@@ -354,20 +403,7 @@ def main():
             # frame = cv2.circle(frame, centroid, 5, colour, -1)
             frame = cv2.putText(frame, 'x', (centroid[0] - 10, centroid[1] + 8), cv2.FONT_HERSHEY_PLAIN, 2, colour, 2)
         # ..................................................................
-        if pressed & 0xFF == ord('f'):
-            p1 = centroid
-            cv2.circle(whiteboard, centroid, int(brush_size / 2), colour, -1)
-            print('\nYou selected the start point, now choose "s" or "o"')
-        if pressed & 0xFF == ord('s'):
-            p2 = centroid
-            cv2.rectangle(whiteboard, p1, p2, colour, brush_size)
-            cv2.circle(whiteboard, centroid, int(brush_size / 2), colour, -1, cv2.FILLED)
-            print('\nYou draw a square')
-        if pressed & 0xFF == ord('o'):
-            p2 = centroid
-            p3 = calculate_distance(p1, p2)
-            cv2.circle(whiteboard, p1, int(p3), colour, brush_size)
-            print('\nYou draw a circle')
+
 
         # To clear the board
         if pressed & 0xFF == ord('c'):
@@ -409,12 +445,73 @@ def main():
             else:
                 brush_size -= 2
 
-        # ................Calling the function that paints the whiteboard ................
-        whiteboard = draw_on_whiteboard(whiteboard, centroid, val, painting, brush_size)
+                # ========================================================
+                # .........................SHAPES ........................
+                # ========================================================
+
+                # .......................... Shape selection ..............................
+
+        if centroid != (0, 0):
+            shape_coord['mouse'] = centroid
+
+            if pressed & 0xFF == ord('s'):
+
+                if not square_param['p1'] and val:  # start drawing square
+                    shape_coord['p1'] = centroid  # save first point
+                    square_param['p1'] = True
+                    elipse_param['p1'] = False
+                    circle_param['p1'] = False
+
+                elif square_param['p1'] and not square_param['p2'] and val:
+
+                    shape_coord['p2'] = centroid
+                    square_param['p2'] = True
+                    print('\nYou drew a rectangle')
+
+            if pressed & 0xFF == ord('o'):
+
+                if not circle_param['p1'] and val:  # start drawing square
+
+                    shape_coord['p1'] = centroid  # save first point
+                    square_param['p1'] = False
+                    elipse_param['p1'] = False
+                    circle_param['p1'] = True
+
+                elif circle_param['p1'] and not circle_param['p2'] and val:
+
+                    shape_coord['p2'] = centroid
+                    circle_param['p2'] = True
+                    print('\nYou drew a circle')
+
+            # ................ Detecting if a shape is being painted ................
+
+            if square_param['p1'] and not square_param['p2']:
+                drawing_square = True
+
+            if circle_param['p1'] and not circle_param['p2']:
+                drawing_circle = True
+
+            if (elipse_param['p1'] and not elipse_param['p2']) or (elipse_param['p1'] and elipse_param['p2'] and not elipse_param['p3']):
+                drawing_elipse = True
+
+            # ................Calling the function that paints the whiteboard ................
+            if drawing_square:
+
+                whiteboard, whiteboard_temp, square_param = draw_shape(shape_coord, square_param, whiteboard, whiteboard_temp, colour, brush_size)
+                cv2.imshow('Whiteboard', whiteboard_temp)
+
+            if drawing_circle:
+
+                whiteboard, whiteboard_temp, circle_param = draw_shape(shape_coord, circle_param, whiteboard, whiteboard_temp, colour, brush_size)
+                cv2.imshow('Whiteboard', whiteboard_temp)
+
+            else:
+                whiteboard = draw_on_whiteboard(whiteboard, centroid, val, painting, brush_size)
+                cv2.imshow('Whiteboard', whiteboard)
 
         # Showing images
         cv2.imshow('Capture', frame)
-        cv2.imshow('Whiteboard', whiteboard)
+
         # To save image EX: drawing_Tue_Sep_15_10:36:39_2020.png
         if pressed & 0xFF == ord('w'):
             save_string = "drawing_" + current_date() + ".png"
