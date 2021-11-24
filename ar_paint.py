@@ -254,7 +254,11 @@ def main():
           '"spacebar" -> Eraser\n\n'
           'Edit brush size\n'
           '"+" -> make bigger\n'
-          '"-" -> make smaller')
+          '"-" -> make smaller\n\n'
+          'GEOMETRIC SHAPES\n'
+          '"i" -> initial point\n'
+          '"s" -> square\n'
+          '"o" -> circle')
 
     print('\n\n\n Press "p" to start painting. Press it again to stop.\n\n')
 
@@ -352,13 +356,18 @@ def main():
         # ..................................................................
         if pressed & 0xFF == ord('f'):
             p1 = centroid
+            cv2.circle(whiteboard, centroid, int(brush_size / 2), colour, -1)
+            print('\nYou selected the start point, now choose "s" or "o"')
         if pressed & 0xFF == ord('s'):
             p2 = centroid
             cv2.rectangle(whiteboard, p1, p2, colour, brush_size)
+            cv2.circle(whiteboard, centroid, int(brush_size / 2), colour, -1, cv2.FILLED)
+            print('\nYou draw a square')
         if pressed & 0xFF == ord('o'):
             p2 = centroid
             p3 = calculate_distance(p1, p2)
             cv2.circle(whiteboard, p1, int(p3), colour, brush_size)
+            print('\nYou draw a circle')
 
         # To clear the board
         if pressed & 0xFF == ord('c'):
