@@ -151,9 +151,9 @@ def centroids_paint(contour_paint, number):
 
 def numbered_paint():
     dim = (frame.shape[1], frame.shape[0])  # Get video size from webcam
-    img_nump_path = './teste.png'   # Get image path
-    img_nump = cv2.resize(cv2.imread(img_nump_path, cv2.IMREAD_COLOR), dim)     # Resize image
-    img_nump_b, img_nump_g, img_nump_r = cv2.split(img_nump)    # Split image in blue, green and red
+    img_nump_path = './teste.png'  # Get image path
+    img_nump = cv2.resize(cv2.imread(img_nump_path, cv2.IMREAD_COLOR), dim)  # Resize image
+    img_nump_b, img_nump_g, img_nump_r = cv2.split(img_nump)  # Split image in blue, green and red
     # Binarize each color in the image
     global img_nump_b_tresh
     _, img_nump_b_tresh = cv2.threshold(img_nump_b, 0, 255, 0)
@@ -176,12 +176,19 @@ def numbered_paint():
 
 
 def paint_pontuation(paint, paint_region):
-    pixels_total = np.count_nonzero(frame)  # Get the number of all the pixels in the image
+    # pixels_total = np.count_nonzero(frame)  # Get the number of all the pixels in the image
     pixels_region = np.count_nonzero(paint_region)  # Get the number of pixels in the regions with a specific color
-    pixels_right = np.count_nonzero(cv2.bitwise_and(paint, paint_region))   # Get the number of pixels in the right spot
+    pixels_right = np.count_nonzero(cv2.bitwise_and(paint, paint_region))  # Get the number of pixels in the right spot
     pixels_wrong = np.count_nonzero(cv2.bitwise_and(paint, cv2.bitwise_not(paint_region)))  # Get the number of
     # pixels in the wrong spot
-    return pixels_total, pixels_region, pixels_right, pixels_wrong
+    pixels_painted = pixels_right + pixels_wrong  # Amount of pixels painted with a specific color
+    percentage_region_painted = round((pixels_right / pixels_region) * 100, 2)  # Percentage of a region painted with the right
+    # color
+    if pixels_painted != 0:
+        percentage_accuracy = round((pixels_right / pixels_painted) * 100, 2)  # Accuracy
+    else:
+        percentage_accuracy = None
+    return percentage_region_painted, percentage_accuracy
 
 
 # =================================================================================================
@@ -398,15 +405,37 @@ def main():
     cam.release()
     cv2.destroyAllWindows()
     # ------ Paint rating ------
-    # if nump:
-    #     ratequestion = input('Do you want to rate your painting? (y or n)')
-    #     if
-    whiteboard[np.where((whiteboard == [255, 255, 255]).all(axis=2))] = [0, 0, 0]
-    paint_b, paint_g, paint_r = cv2.split(whiteboard)
-    # --------for test ------
-    print(paint_pontuation(paint_b, img_nump_b_tresh))
-    print(paint_pontuation(paint_g, img_nump_g_tresh))
-    print(paint_pontuation(paint_r, img_nump_r_tresh))
+    if nump:
+        while True:
+            try:
+                rate_question = str(input('Do you want to rate your painting? (y or n) \n'))
+            except ValueError:
+                continue
+
+            if str(rate_question) != 'y' and str(rate_question) != 'n':
+                print('Wrong input! You typed ' + str(rate_question) + ' and you must type y or n')
+                print(rate_question)
+                continue
+            else:
+                break
+        if rate_question == 'y':
+            whiteboard[np.where((whiteboard == [255, 255, 255]).all(axis=2))] = [0, 0, 0]
+            paint_b, paint_g, paint_r = cv2.split(whiteboard)
+            if paint_pontuation(paint_b, img_nump_b_tresh)[1] == None:
+                print('You did not paint in blue')
+            else:
+                print('You painted ' + str(paint_pontuation(paint_b, img_nump_b_tresh)[0]) + '% of the blue region with ' +
+                      str(paint_pontuation(paint_b, img_nump_b_tresh)[1]) + '% of accuracy')
+            if paint_pontuation(paint_g, img_nump_g_tresh)[1] == None:
+                print('You did not paint in green')
+            else:
+                print('You painted ' + str(paint_pontuation(paint_g, img_nump_g_tresh)[0]) + '% of the green region with ' +
+                      str(paint_pontuation(paint_g, img_nump_g_tresh)[1]) + '% of accuracy')
+            if paint_pontuation(paint_r, img_nump_r_tresh)[1] == None:
+                print('You did not paint in red')
+            else:
+                print('You painted ' + str(paint_pontuation(paint_r, img_nump_r_tresh)[0]) + '% of the red region with ' +
+                      str(paint_pontuation(paint_r, img_nump_r_tresh)[1]) + '% of accuracy')
 
 
 if __name__ == '__main__':
