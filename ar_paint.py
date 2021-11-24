@@ -89,7 +89,7 @@ def draw_on_whiteboard(img, marker_coord, val, painting_true, brush_size):
     # ............. Shake prevention ..........................
     # Only paints if the distance between points is small
     if usp:
-        if painting_true and dist < 35 and val:
+        if painting_true and dist < 50 and val:
 
             # paints circle where the centroid is detected
             # divide brush size by to permit a radius of 1
@@ -294,7 +294,7 @@ def main():
     print('"p" -> Start/stop painting\n'
           '"q" -> Quit\n\n'
           'Colours\n'
-          + Fore.RED + '"r"' + Style.RESET_ALL + '-> Change color to '+Fore.RED+'red\n'+ Style.RESET_ALL +
+          + Fore.RED + '"r"' + Style.RESET_ALL + ' -> Change color to '+Fore.RED+'red\n'+ Style.RESET_ALL +
           Fore.GREEN +'"g"' + Style.RESET_ALL + ' -> Change color to '+ Fore.GREEN +'green\n' + Style.RESET_ALL +
           Fore.BLUE +'"b"' + Style.RESET_ALL + ' -> Change color to '+ Fore.BLUE +'blue\n' + Style.RESET_ALL +
           '"spacebar" -> '+ Fore.LIGHTMAGENTA_EX +'Eraser\n\n' + Style.RESET_ALL +
@@ -430,6 +430,8 @@ def main():
 
         # To start and stop painting
         if pressed & 0xFF == ord('p'):
+            drawing_circle = False
+            drawing_square = False
             previous_point = centroid
             if painting is False:
                 painting = True
@@ -508,12 +510,12 @@ def main():
 
             # ................Calling the function that paints the whiteboard ................
             if drawing_square:
-
+                painting = False
                 whiteboard, whiteboard_temp, square_param = draw_shape(shape_coord, square_param, whiteboard, whiteboard_temp, colour, brush_size)
                 cv2.imshow('Whiteboard', whiteboard_temp)
 
             if drawing_circle:
-
+                painting = False
                 whiteboard, whiteboard_temp, circle_param = draw_shape(shape_coord, circle_param, whiteboard, whiteboard_temp, colour, brush_size)
                 cv2.imshow('Whiteboard', whiteboard_temp)
 
