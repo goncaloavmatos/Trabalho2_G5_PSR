@@ -235,6 +235,22 @@ def draw_shape(coord, shape_param, img, img_temp, colour, thickness):
     return img, img_temp, shape_param
 
 
+# ========================================================
+# ................ FUNCTION: COLORMASK ...................
+# ========================================================
+
+
+def colormask(img):
+    mask_R = cv2.inRange(img, (0, 0, 0), (0, 0, 255))
+    mask_G = cv2.inRange(img, (0, 0, 0), (0, 255, 0))
+    mask_B = cv2.inRange(img, (0, 0, 0), (255, 0, 0))
+
+    mask = cv2.bitwise_or(mask_R, mask_G)
+    mask = cv2.bitwise_or(mask, mask_B)
+
+    return mask
+
+
 # =================================================================================================
 # ............................................. MAIN FUNCTION .....................................
 # =================================================================================================
@@ -336,6 +352,7 @@ def main():
         whiteboard = np.zeros(frame.shape, dtype=np.uint8)  # Set whiteboard size as the size of the captured image
         whiteboard.fill(255)  # make every pixel white
 
+    cv2.imshow('Whiteboard', whiteboard)
     # ..................... Starting values ...................................
     # Specifying that at the start the user is not painting
     painting = False
@@ -347,11 +364,11 @@ def main():
 
     square_param = {'p1': False, 'p2': False, 'figure': 's'}
     circle_param = {'p1': False, 'p2': False, 'figure': 'o'}
-    elipse_param = {'p1': False, 'p2': False, 'p3': False, 'figure': 'e'}
+    #  elipse_param = {'p1': False, 'p2': False, 'p3': False, 'figure': 'e'}
 
     drawing_square = False
     drawing_circle = False
-    drawing_elipse = False
+    #  drawing_elipse = False
 
     # =======================================================================================
     # .................................. CICLO WHILE .......................................
@@ -428,7 +445,7 @@ def main():
         if pressed & 0xFF == ord('c'):
             if nump:
                 whiteboard = np.zeros(frame.shape, dtype=np.uint8)
-                whiteboard.fill(100)
+                whiteboard.fill(255)
                 numbered_paint()
             else:
                 whiteboard = np.zeros(frame.shape, dtype=np.uint8)
@@ -480,7 +497,7 @@ def main():
                 if not square_param['p1'] and val:  # start drawing square
                     shape_coord['p1'] = centroid  # save first point
                     square_param['p1'] = True
-                    elipse_param['p1'] = False
+                    #elipse_param['p1'] = False
                     circle_param['p1'] = False
 
                 elif square_param['p1'] and not square_param['p2'] and val:
@@ -495,7 +512,7 @@ def main():
 
                     shape_coord['p1'] = centroid  # save first point
                     square_param['p1'] = False
-                    elipse_param['p1'] = False
+                    #elipse_param['p1'] = False
                     circle_param['p1'] = True
 
                 elif circle_param['p1'] and not circle_param['p2'] and val:
@@ -512,23 +529,57 @@ def main():
             if circle_param['p1']:
                 drawing_circle = True
 
-            if (elipse_param['p1'] and not elipse_param['p2']) or (elipse_param['p1'] and elipse_param['p2'] and not elipse_param['p3']):
+            #if (elipse_param['p1'] and not elipse_param['p2']) or (elipse_param['p1'] and elipse_param['p2'] and not elipse_param['p3']):
                 drawing_elipse = True
 
             # ................Calling the function that paints the whiteboard ................
             if drawing_square:
                 painting = False
                 whiteboard, whiteboard_temp, square_param = draw_shape(shape_coord, square_param, whiteboard, whiteboard_temp, colour, brush_size)
-                cv2.imshow('Whiteboard', whiteboard_temp)
+
+
+                if switch_board:
+
+                    mask_switch = colormask(whiteboard_temp)
+                    frame[mask_switch > 0] = whiteboard_temp[mask_switch > 0]
+                    cv2.imshow('Capture', frame)
+
+                else:
+                    cv2.imshow('Whiteboard', whiteboard_temp)
 
             if drawing_circle:
                 painting = False
                 whiteboard, whiteboard_temp, circle_param = draw_shape(shape_coord, circle_param, whiteboard, whiteboard_temp, colour, brush_size)
-                cv2.imshow('Whiteboard', whiteboard_temp)
+
+
+                if switch_board:
+
+                    mask_switch = colormask(whiteboard_temp)
+                    frame[mask_switch > 0] = whiteboard_temp[mask_switch > 0]
+                    cv2.imshow('Capture', frame)
+
+                else:
+                    cv2.imshow('Whiteboard', whiteboard_temp)
 
             if not drawing_square and not drawing_circle:
+
                 whiteboard = draw_on_whiteboard(whiteboard, centroid, val, painting, brush_size)
-                cv2.imshow('Whiteboard', whiteboard)
+
+                if switch_board:
+
+                    mask_switch = colormask(whiteboard)
+                    frame[mask_switch > 0] = whiteboard[mask_switch > 0]
+                    cv2.imshow('Capture', frame)
+
+                else:
+                    whiteboard = draw_on_whiteboard(whiteboard, centroid, val, painting, brush_size)
+
+                    cv2.imshow('Whiteboard', whiteboard)
+
+        if switch_board:
+
+            mask_switch = colormask(whiteboard)
+            frame[mask_switch > 0] = whiteboard[mask_switch > 0]
 
         # Showing images
         cv2.imshow('Capture', frame)
@@ -539,8 +590,10 @@ def main():
             cv2.imwrite(save_string, whiteboard)
 
             print('\nSaved image in: ' + Style.BRIGHT + Fore.LIGHTBLUE_EX + save_string + Style.RESET_ALL)
+
     cam.release()
     cv2.destroyAllWindows()
+
     # ------ Paint rating ------
     if nump:
         while True:
