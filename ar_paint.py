@@ -13,9 +13,7 @@ import time
 # ........... Function: DISTANCE BETWEEN POINTS ..........
 # ========================================================
 
-# To help with Funcionalidade Avançada 1
-
-
+# distance between 2 points
 def calculate_distance(point1, point2):
     x1, y1 = point1[0], point1[1]
     x2, y2 = point2[0], point2[1]
@@ -152,7 +150,7 @@ def centroids_paint(contour_paint, number):
 
 def numbered_paint():
     dim = (frame.shape[1], frame.shape[0])  # Get video size from webcam
-    img_nump_path = './teste.png'  # Get image path
+    img_nump_path = '/home/goncalo/catkin_ws/src/Trabalho2_G5_PSR/teste.png'  # Get image path
     img_nump = cv2.resize(cv2.imread(img_nump_path, cv2.IMREAD_COLOR), dim)  # Resize image
     img_nump_b, img_nump_g, img_nump_r = cv2.split(img_nump)  # Split image in blue, green and red
     # Binarize each color in the image
@@ -250,7 +248,7 @@ def main():
     global colour
     global previous_point
     p1 = (320, 240)
-    # ..............Specify file directory....................
+    # ..............Arguments....................
 
     parser = argparse.ArgumentParser()
     parser.add_argument('-j', '--json', type=str, required=True, help='Full path to json file.')
@@ -258,9 +256,13 @@ def main():
                         help='Prevents brush from drifting with big variations of the centroid.')
     parser.add_argument('-nump', '--numbered_paint', action='store_true',
                         help='Enables the numbered paint mode. Full path to the image')
+    parser.add_argument('-fb', '--use_frame_as_board', action='store_true',
+                        help='To draw on the capture frame image instead of the whiteboard.')
     args = vars(parser.parse_args())
     color_segment = args['json']
 
+    global switch_board
+    switch_board = args['use_frame_as_board']
     global usp
     usp = args['use_shake_prevention']
     global nump
@@ -319,6 +321,11 @@ def main():
     ret, frame = cam.read()  # get an image from the camera
 
     if nump:
+        print('\nNUMBERED PAINT\n'
+              'Paint the regions with the number ' + Fore.BLUE + '1 with blue\n' + Style.RESET_ALL +
+              'Paint the regions with the number ' + Fore.GREEN + '2 with green\n' + Style.RESET_ALL +
+               'Paint the regions with the number ' + Fore.RED + '3 with red\n' + Style.RESET_ALL)
+
         global whiteboard
         whiteboard = np.zeros(frame.shape, dtype=np.uint8)
         whiteboard.fill(255)
@@ -528,10 +535,10 @@ def main():
 
         # To save image EX: drawing_Tue_Sep_15_10:36:39_2020.png
         if pressed & 0xFF == ord('w'):
-            save_string = "drawing_" + current_date() + ".png"
+            save_string = "/home/goncalo/catkin_ws/src/Trabalho2_G5_PSR/drawing_" + current_date() + ".png"
             cv2.imwrite(save_string, whiteboard)
 
-            print('\nSaved image as: ' + Style.BRIGHT + Fore.LIGHTBLUE_EX + save_string + Style.RESET_ALL)
+            print('\nSaved image in: ' + Style.BRIGHT + Fore.LIGHTBLUE_EX + save_string + Style.RESET_ALL)
     cam.release()
     cv2.destroyAllWindows()
     # ------ Paint rating ------
