@@ -13,9 +13,7 @@ import time
 # ........... Function: DISTANCE BETWEEN POINTS ..........
 # ========================================================
 
-# To help with Funcionalidade Avançada 1
-
-
+# distance between 2 points
 def calculate_distance(point1, point2):
     x1, y1 = point1[0], point1[1]
     x2, y2 = point2[0], point2[1]
@@ -152,7 +150,7 @@ def centroids_paint(contour_paint, number):
 
 def numbered_paint():
     dim = (frame.shape[1], frame.shape[0])  # Get video size from webcam
-    img_nump_path = './teste.png'  # Get image path
+    img_nump_path = '/home/goncalo/catkin_ws/src/Trabalho2_G5_PSR/teste.png'  # Get image path
     img_nump = cv2.resize(cv2.imread(img_nump_path, cv2.IMREAD_COLOR), dim)  # Resize image
     img_nump_b, img_nump_g, img_nump_r = cv2.split(img_nump)  # Split image in blue, green and red
     # Binarize each color in the image
@@ -237,6 +235,22 @@ def draw_shape(coord, shape_param, img, img_temp, colour, thickness):
     return img, img_temp, shape_param
 
 
+# ========================================================
+# ................ FUNCTION: COLORMASK ...................
+# ========================================================
+
+
+def colormask(img):
+    mask_R = cv2.inRange(img, (0, 0, 0), (0, 0, 255))
+    mask_G = cv2.inRange(img, (0, 0, 0), (0, 255, 0))
+    mask_B = cv2.inRange(img, (0, 0, 0), (255, 0, 0))
+
+    mask = cv2.bitwise_or(mask_R, mask_G)
+    mask = cv2.bitwise_or(mask, mask_B)
+
+    return mask
+
+
 # =================================================================================================
 # ............................................. MAIN FUNCTION .....................................
 # =================================================================================================
@@ -250,7 +264,7 @@ def main():
     global colour
     global previous_point
     p1 = (320, 240)
-    # ..............Specify file directory....................
+    # ..............Arguments....................
 
     parser = argparse.ArgumentParser()
     parser.add_argument('-j', '--json', type=str, required=True, help='Full path to json file.')
@@ -258,9 +272,13 @@ def main():
                         help='Prevents brush from drifting with big variations of the centroid.')
     parser.add_argument('-nump', '--numbered_paint', action='store_true',
                         help='Enables the numbered paint mode. Full path to the image')
+    parser.add_argument('-fb', '--use_frame_as_board', action='store_true',
+                        help='To draw on the capture frame image instead of the whiteboard.')
     args = vars(parser.parse_args())
     color_segment = args['json']
 
+    global switch_board
+    switch_board = args['use_frame_as_board']
     global usp
     usp = args['use_shake_prevention']
     global nump
@@ -319,6 +337,11 @@ def main():
     ret, frame = cam.read()  # get an image from the camera
 
     if nump:
+        print('\nNUMBERED PAINT\n'
+              'Paint the regions with the number ' + Fore.BLUE + '1 with blue\n' + Style.RESET_ALL +
+              'Paint the regions with the number ' + Fore.GREEN + '2 with green\n' + Style.RESET_ALL +
+               'Paint the regions with the number ' + Fore.RED + '3 with red\n' + Style.RESET_ALL)
+
         global whiteboard
         whiteboard = np.zeros(frame.shape, dtype=np.uint8)
         whiteboard.fill(255)
@@ -329,6 +352,7 @@ def main():
         whiteboard = np.zeros(frame.shape, dtype=np.uint8)  # Set whiteboard size as the size of the captured image
         whiteboard.fill(255)  # make every pixel white
 
+    cv2.imshow('Whiteboard', whiteboard)
     # ..................... Starting values ...................................
     # Specifying that at the start the user is not painting
     painting = False
@@ -340,11 +364,11 @@ def main():
 
     square_param = {'p1': False, 'p2': False, 'figure': 's'}
     circle_param = {'p1': False, 'p2': False, 'figure': 'o'}
-    elipse_param = {'p1': False, 'p2': False, 'p3': False, 'figure': 'e'}
+    #  elipse_param = {'p1': False, 'p2': False, 'p3': False, 'figure': 'e'}
 
     drawing_square = False
     drawing_circle = False
-    drawing_elipse = False
+    #  drawing_elipse = False
 
     # =======================================================================================
     # .................................. CICLO WHILE .......................................
@@ -421,7 +445,7 @@ def main():
         if pressed & 0xFF == ord('c'):
             if nump:
                 whiteboard = np.zeros(frame.shape, dtype=np.uint8)
-                whiteboard.fill(100)
+                whiteboard.fill(255)
                 numbered_paint()
             else:
                 whiteboard = np.zeros(frame.shape, dtype=np.uint8)
@@ -473,7 +497,7 @@ def main():
                 if not square_param['p1'] and val:  # start drawing square
                     shape_coord['p1'] = centroid  # save first point
                     square_param['p1'] = True
-                    elipse_param['p1'] = False
+                    #elipse_param['p1'] = False
                     circle_param['p1'] = False
 
                 elif square_param['p1'] and not square_param['p2'] and val:
@@ -488,7 +512,7 @@ def main():
 
                     shape_coord['p1'] = centroid  # save first point
                     square_param['p1'] = False
-                    elipse_param['p1'] = False
+                    #elipse_param['p1'] = False
                     circle_param['p1'] = True
 
                 elif circle_param['p1'] and not circle_param['p2'] and val:
@@ -505,35 +529,71 @@ def main():
             if circle_param['p1']:
                 drawing_circle = True
 
-            if (elipse_param['p1'] and not elipse_param['p2']) or (elipse_param['p1'] and elipse_param['p2'] and not elipse_param['p3']):
+            #if (elipse_param['p1'] and not elipse_param['p2']) or (elipse_param['p1'] and elipse_param['p2'] and not elipse_param['p3']):
                 drawing_elipse = True
 
             # ................Calling the function that paints the whiteboard ................
             if drawing_square:
                 painting = False
                 whiteboard, whiteboard_temp, square_param = draw_shape(shape_coord, square_param, whiteboard, whiteboard_temp, colour, brush_size)
-                cv2.imshow('Whiteboard', whiteboard_temp)
+
+
+                if switch_board:
+
+                    mask_switch = colormask(whiteboard_temp)
+                    frame[mask_switch > 0] = whiteboard_temp[mask_switch > 0]
+                    cv2.imshow('Capture', frame)
+
+                else:
+                    cv2.imshow('Whiteboard', whiteboard_temp)
 
             if drawing_circle:
                 painting = False
                 whiteboard, whiteboard_temp, circle_param = draw_shape(shape_coord, circle_param, whiteboard, whiteboard_temp, colour, brush_size)
-                cv2.imshow('Whiteboard', whiteboard_temp)
+
+
+                if switch_board:
+
+                    mask_switch = colormask(whiteboard_temp)
+                    frame[mask_switch > 0] = whiteboard_temp[mask_switch > 0]
+                    cv2.imshow('Capture', frame)
+
+                else:
+                    cv2.imshow('Whiteboard', whiteboard_temp)
 
             if not drawing_square and not drawing_circle:
+
                 whiteboard = draw_on_whiteboard(whiteboard, centroid, val, painting, brush_size)
-                cv2.imshow('Whiteboard', whiteboard)
+
+                if switch_board:
+
+                    mask_switch = colormask(whiteboard)
+                    frame[mask_switch > 0] = whiteboard[mask_switch > 0]
+                    cv2.imshow('Capture', frame)
+
+                else:
+                    whiteboard = draw_on_whiteboard(whiteboard, centroid, val, painting, brush_size)
+
+                    cv2.imshow('Whiteboard', whiteboard)
+
+        if switch_board:
+
+            mask_switch = colormask(whiteboard)
+            frame[mask_switch > 0] = whiteboard[mask_switch > 0]
 
         # Showing images
         cv2.imshow('Capture', frame)
 
         # To save image EX: drawing_Tue_Sep_15_10:36:39_2020.png
         if pressed & 0xFF == ord('w'):
-            save_string = "drawing_" + current_date() + ".png"
+            save_string = "/home/goncalo/catkin_ws/src/Trabalho2_G5_PSR/drawing_" + current_date() + ".png"
             cv2.imwrite(save_string, whiteboard)
 
-            print('\nSaved image as: ' + Style.BRIGHT + Fore.LIGHTBLUE_EX + save_string + Style.RESET_ALL)
+            print('\nSaved image in: ' + Style.BRIGHT + Fore.LIGHTBLUE_EX + save_string + Style.RESET_ALL)
+
     cam.release()
     cv2.destroyAllWindows()
+
     # ------ Paint rating ------
     if nump:
         while True:
